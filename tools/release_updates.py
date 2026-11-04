@@ -14,6 +14,7 @@ import base64
 import hashlib
 import json
 import os
+import re
 import sys
 from pathlib import Path
 from urllib.parse import quote
@@ -28,10 +29,27 @@ from labstudio.update import updater  # noqa: E402
 PLATFORMS = ('windows-x86_64', 'macos-arm64', 'macos-x86_64')
 
 
+def normalize_pem(text):
+    """Rebuild a PEM private key from text that went through copy-paste (CRLF, indentation, joined lines, BOM)."""
+    text = text.replace('\ufeff', '').replace('\r', '')
+    match = re.search(r'-----BEGIN ([A-Z ]+)-----(.*?)-----END \1-----', text, re.S)
+    label, body = (match.group(1), match.group(2)) if match else ('PRIVATE KEY', text)
+    body = re.sub(r'[^A-Za-z0-9+/=]', '', body)
+    if not body:
+        raise SystemExit('The signing key is empty.')
+    lines = [body[i:i + 64] for i in range(0, len(body), 64)]
+    return ('-----BEGIN %s-----\n%s\n-----END %s-----\n' % (label, '\n'.join(lines), label)).encode()
+
+
 def load_key():
     text = os.environ.get('LABSTUDIO_SIGNING_KEY')
-    data = text.encode() if text else (ROOT / '.release-keys' / 'update-signing-key.pem').read_bytes()
-    return serialization.load_pem_private_key(data, password=None)
+    if not text:
+        text = (ROOT / '.release-keys' / 'update-signing-key.pem').read_text(encoding='utf-8-sig')
+    try:
+        return serialization.load_pem_private_key(normalize_pem(text), password=None)
+    except ValueError:
+        raise SystemExit('The signing key could not be read. Paste the whole update-signing-key.pem file, '
+                         'including the BEGIN and END lines, into the LABSTUDIO_SIGNING_KEY secret.') from None
 
 
 def main():

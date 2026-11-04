@@ -18,12 +18,13 @@ import uuid
 from pathlib import Path
 from urllib.parse import urlsplit
 
-from ..paths import APP_VERSION, data_directory as app_data_directory
+from ..paths import APP_VERSION, data_directory as app_data_directory, legacy_xrd_directory
 
 MAX_DOWNLOAD = 1024 * 1024 * 1024
 APP_BUNDLE = 'Lab Plot Studio.app'
 BUNDLE_ID = 'io.github.greenbean0123.labplotstudio'
 HEALTH_ENV = 'LABSTUDIO_UPDATE_HEALTH_FILE'
+LEGACY_HEALTH_ENV = 'XRD_UPDATE_HEALTH_FILE'  # set by XRD Plotter's installer when it migrates to this app
 
 
 def data_directory():
@@ -225,11 +226,14 @@ def start_installer(package, release):
 
 
 def mark_ready():
-    """Called by a freshly updated app once its window is up: tells the installer the update worked."""
-    value = os.environ.pop(HEALTH_ENV, None)
-    if not value:
-        return
-    path = Path(value).resolve()
-    base = (data_directory() / 'updates').resolve()
-    if path.name == 'new-app-ready' and path.parent.parent == base:
-        path.write_text('ready')
+    """Called by a freshly updated app once its window is up: tells the installer the update worked.
+
+    Also answers XRD Plotter's installer, which migrates XRD Plotter installations to this app.
+    """
+    for variable, base in ((HEALTH_ENV, data_directory()), (LEGACY_HEALTH_ENV, legacy_xrd_directory())):
+        value = os.environ.pop(variable, None)
+        if not value:
+            continue
+        path = Path(value).resolve()
+        if path.name == 'new-app-ready' and path.parent.parent == (base / 'updates').resolve():
+            path.write_text('ready')

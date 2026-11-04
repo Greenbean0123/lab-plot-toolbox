@@ -118,6 +118,25 @@ with tempfile.TemporaryDirectory() as folder:
     check('failed update is rolled back and the old app reopened', error and target.read_text() == 'new' and launched == ['broken', 'new'],
           error)
 
+# Health signal: our own installer and XRD Plotter's installer (migration), only inside the expected folders.
+import os  # noqa: E402
+with tempfile.TemporaryDirectory() as folder:
+    folder = Path(folder)
+    os.environ['LOCALAPPDATA'] = str(folder)
+    os.environ['LABSTUDIO_DATA_DIR'] = str(folder / 'LabPlotStudio')
+    own = folder / 'LabPlotStudio' / 'updates' / ('a' * 32) / 'new-app-ready'
+    legacy = folder / 'XRD Plotter' / 'updates' / ('b' * 32) / 'new-app-ready'
+    stray = folder / 'elsewhere' / 'x' / 'new-app-ready'
+    for path in (own, legacy, stray):
+        path.parent.mkdir(parents=True)
+    os.environ[updater.HEALTH_ENV], os.environ[updater.LEGACY_HEALTH_ENV] = str(own), str(legacy)
+    updater.mark_ready()
+    check('ready signal answered for our installer and for XRD Plotter migration',
+          own.read_text() == 'ready' and legacy.read_text() == 'ready')
+    os.environ[updater.LEGACY_HEALTH_ENV] = str(stray)
+    updater.mark_ready()
+    check('ready signal outside the update folders ignored', not stray.exists())
+
 check('hash helper matches hashlib', updater.file_sha256(ROOT / 'LICENSE') == __import__('hashlib').sha256((ROOT / 'LICENSE').read_bytes()).hexdigest())
 print(f'\n{sum(results)}/{len(results)} passed')
 sys.exit(0 if all(results) else 1)

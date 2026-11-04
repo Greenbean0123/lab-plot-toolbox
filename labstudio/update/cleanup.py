@@ -17,10 +17,10 @@ def remove(path):
         shutil.rmtree(path)
 
 
-def cleanup(directory, target):
+def cleanup(directory, target, base=None):
     """Keep recovery files unless the ready signal, the success result and every path agree."""
     directory, target = Path(directory), Path(target).resolve()
-    base = (updater.data_directory() / 'updates').resolve()
+    base = Path(base or updater.data_directory() / 'updates').resolve()
     if directory.is_symlink() or directory.resolve().parent != base or not re.fullmatch(r'[0-9a-f]{32}', directory.name):
         return False
     directory = directory.resolve()
@@ -59,6 +59,15 @@ def cleanup(directory, target):
         return False
 
 
+def _is_ours(directory, target):
+    """Only keep retrying for transactions that installed this app; other leftovers are not our business."""
+    try:
+        job = json.loads((Path(directory) / 'job.json').read_text(encoding='utf-8'))
+        return Path(job['target']).resolve() == Path(target).resolve()
+    except (OSError, ValueError, KeyError, TypeError):
+        return False
+
+
 def schedule():
     """Retry while the helper exits; later launches also finish interrupted cleanups."""
     if not getattr(sys, 'frozen', False):
@@ -67,14 +76,17 @@ def schedule():
     def worker():
         try:
             target = updater.installed_target()
-            base = updater.data_directory() / 'updates'
+            # Our own transactions, and those of XRD Plotter's installer after it migrated to this app.
+            bases = [updater.data_directory() / 'updates', updater.legacy_xrd_directory() / 'updates']
             for _ in range(15):
-                if not base.is_dir():
-                    return
                 pending = False
-                for directory in list(base.iterdir()):
-                    if directory.is_dir() and re.fullmatch(r'[0-9a-f]{32}', directory.name) and not cleanup(directory, target):
-                        pending = True
+                for base in bases:
+                    if not base.is_dir():
+                        continue
+                    for directory in list(base.iterdir()):
+                        if directory.is_dir() and re.fullmatch(r'[0-9a-f]{32}', directory.name) and \
+                                not cleanup(directory, target, base):
+                            pending = pending or _is_ours(directory, target)
                 if not pending:
                     return
                 time.sleep(2)
