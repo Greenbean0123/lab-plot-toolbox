@@ -1,0 +1,7 @@
+# Runtime dependencies (about 150 MB installed).
+numpy
+matplotlib>=3.8
+Pillow>=10.1
+tifffile
+pdfplumber>=0.11
+gemmi>=0.6.7

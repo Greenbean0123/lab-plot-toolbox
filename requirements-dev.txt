@@ -1,0 +1,4 @@
+# Only for tests/test_equivalence.py and tests/test_numerics.py, which compare against the
+# original programs and SciPy. Not needed to run the toolbox.
+-r requirements.txt
+scipy
