@@ -72,6 +72,7 @@ jobs:
         run: |
           python tests/test_i18n.py
           python tests/test_phase.py
+          python tests/test_updates.py
           python tests/test_gui.py
 
       - name: Build Windows packages
