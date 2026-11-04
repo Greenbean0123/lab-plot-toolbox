@@ -1,4 +1,4 @@
-## Lab Plot Studio 0.1.1
+## Lab Plot Studio 0.1.2
 
 TEM scale bars and size distributions, stacked XRD patterns with phase identification, and UV-Vis spectra — one window.
 
@@ -6,9 +6,9 @@ TEM scale bars and size distributions, stacked XRD patterns with phase identific
 
 | System | File |
 |---|---|
-| Windows 10 / 11 (64-bit) | `LabPlotStudio-0.1.1-Windows-x64.exe` (single file) or `…-Windows-x64.zip` (folder, starts faster) |
-| macOS 11+ on Apple silicon (M1–M4) | `LabPlotStudio-0.1.1-macOS-arm64.dmg` |
-| macOS 11+ on Intel | `LabPlotStudio-0.1.1-macOS-x86_64.dmg` |
+| Windows 10 / 11 (64-bit) | `LabPlotStudio-0.1.2-Windows-x64.exe` (single file) or `…-Windows-x64.zip` (folder, starts faster) |
+| macOS 11+ on Apple silicon (M1–M4) | `LabPlotStudio-0.1.2-macOS-arm64.dmg` |
+| macOS 11+ on Intel | `LabPlotStudio-0.1.2-macOS-x86_64.dmg` |
 
 Every package was started once on its build machine and passed an automatic self-test of all three tools.
 

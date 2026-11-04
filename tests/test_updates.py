@@ -122,7 +122,7 @@ with tempfile.TemporaryDirectory() as folder:
 import os  # noqa: E402
 with tempfile.TemporaryDirectory() as folder:
     folder = Path(folder)
-    os.environ['LOCALAPPDATA'] = str(folder)
+    updater.legacy_xrd_directory = lambda: folder / 'XRD Plotter'
     os.environ['LABSTUDIO_DATA_DIR'] = str(folder / 'LabPlotStudio')
     own = folder / 'LabPlotStudio' / 'updates' / ('a' * 32) / 'new-app-ready'
     legacy = folder / 'XRD Plotter' / 'updates' / ('b' * 32) / 'new-app-ready'
