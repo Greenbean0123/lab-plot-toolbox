@@ -24,3 +24,4 @@ Every package was started once on its build machine and passed an automatic self
 - TEM: automatic scale-bar reading and recalibration, draggable scale bar, zoomed inset, diameter histogram with Gaussian fit and overlay
 - UV-Vis: three normalization modes, figure and data export
 - English / Chinese interface, light / dark theme, collapsible sidebar
+- Signed automatic updates: the app checks for new versions at startup (Settings -> Updates) and asks before installing
