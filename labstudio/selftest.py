@@ -18,6 +18,7 @@ def run(report_path):
               'python': sys.version.split()[0], 'frozen': bool(getattr(sys, 'frozen', False))}
     work = Path(tempfile.mkdtemp(prefix='labstudio-selftest-'))
     os.environ['LABSTUDIO_DATA_DIR'] = str(work / 'data')  # never touch the user's preferences
+    os.environ['LABSTUDIO_NO_UPDATE_CHECK'] = '1'
     app = None
 
     def check(name, ok, detail=''):
@@ -117,6 +118,20 @@ def run(report_path):
         app.set_theme('dark')
         pump(0.5)
         check('English interface, dark theme', app.title().startswith('Lab Plot Studio') and app.theme.mode == 'dark')
+        # Updater: the packaged app holds the public key and can verify a signed manifest.
+        import base64
+        from cryptography.hazmat.primitives import serialization
+        from cryptography.hazmat.primitives.asymmetric.ed25519 import Ed25519PrivateKey
+        from .update import updater
+        config = updater.bundled_config()
+        check('update feed and public key bundled', config.get('public_key') and config.get('manifest_url', '').startswith('https://'))
+        key = Ed25519PrivateKey.generate()
+        public = base64.b64encode(key.public_key().public_bytes(serialization.Encoding.Raw, serialization.PublicFormat.Raw)).decode()
+        payload = {'schema': 1, 'version': '99.0.0', 'notes': '', 'assets': {updater.platform_key(): {
+            'url': 'https://example.invalid/update', 'size': 1, 'sha256': '0' * 64,
+            'format': 'app-zip' if sys.platform == 'darwin' else 'exe'}}}
+        envelope = {'payload': payload, 'signature': base64.b64encode(key.sign(updater.canonical(payload))).decode()}
+        check('signed update verification', updater.verify_manifest(envelope, public, APP_VERSION) is not None)
         report['success'] = True
     except Exception as error:
         report['error'] = str(error)

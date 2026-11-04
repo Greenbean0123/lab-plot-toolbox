@@ -111,9 +111,30 @@ jobs:
       contents: write
     steps:
       - uses: actions/checkout@v7
+      - uses: actions/setup-python@v7
+        with:
+          python-version: '3.13'
       - uses: actions/download-artifact@v7
         with:
           path: artifacts
+      - run: python -m pip install cryptography
+      - name: Sign the update manifest
+        env:
+          LABSTUDIO_SIGNING_KEY: ${{ secrets.LABSTUDIO_SIGNING_KEY }}
+          TAG: ${{ github.ref_name }}
+        shell: bash
+        run: |
+          set -euo pipefail
+          version="$(python -c "import runpy; print(runpy.run_path('labstudio/paths.py')['APP_VERSION'])")"
+          test "$TAG" = "v$version" || { echo "Tag $TAG does not match APP_VERSION $version"; exit 1; }
+          test -n "$LABSTUDIO_SIGNING_KEY" || { echo "Secret LABSTUDIO_SIGNING_KEY is missing"; exit 1; }
+          find_one() { f="$(find artifacts -type f -name "$1")"; test -n "$f" || { echo "missing $1"; exit 1; }; echo "$f"; }
+          python tools/release_updates.py --version "$version" --notes-file RELEASE_NOTES.md \
+            --base-url "https://github.com/${{ github.repository }}/releases/download/$TAG" \
+            --asset "windows-x86_64=$(find_one "LabPlotStudio-$version-Windows-x64.exe")" \
+            --asset "macos-arm64=$(find_one "LabPlotStudio-$version-macOS-arm64.zip")" \
+            --asset "macos-x86_64=$(find_one "LabPlotStudio-$version-macOS-x86_64.zip")" \
+            --output updates.json
       - name: Publish release
         env:
           GH_TOKEN: ${{ github.token }}
@@ -122,8 +143,8 @@ jobs:
         shell: bash
         run: |
           set -euo pipefail
-          version="$(python3 -c "import runpy; print(runpy.run_path('labstudio/paths.py')['APP_VERSION'])")"
-          test "$TAG" = "v$version" || { echo "Tag $TAG does not match APP_VERSION $version"; exit 1; }
           mapfile -t assets < <(find artifacts -type f \( -name 'LabPlotStudio-*.exe' -o -name 'LabPlotStudio-*.zip' -o -name 'LabPlotStudio-*.dmg' \))
-          (cd artifacts && find . -type f \( -name 'LabPlotStudio-*' \) -exec sha256sum {} + | sed 's#\./[^/]*/##') > SHA256SUMS.txt
-          gh release create "$TAG" "${assets[@]}" SHA256SUMS.txt --title "Lab Plot Studio $TAG" --notes-file RELEASE_NOTES.md --verify-tag
+          sha256sum "${assets[@]}" | sed 's#  artifacts/[^/]*/#  #' > SHA256SUMS.txt
+          # updates.json must sit on the latest release: installed apps read releases/latest/download/updates.json
+          gh release create "$TAG" "${assets[@]}" updates.json SHA256SUMS.txt --title "Lab Plot Studio $TAG" \
+            --notes-file RELEASE_NOTES.md --verify-tag --latest

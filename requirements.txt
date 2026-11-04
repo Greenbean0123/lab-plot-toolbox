@@ -5,3 +5,4 @@ Pillow>=10.1
 tifffile
 pdfplumber>=0.11
 gemmi>=0.6.7
+cryptography>=42  # verifies signed updates (also needed by pdfplumber)

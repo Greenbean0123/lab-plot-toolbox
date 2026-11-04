@@ -47,6 +47,8 @@ class LabStudio(tk.Tk):
                 pass
         self.theme = Theme(self, self.prefs.get('theme', 'light'), self.prefs.get('scale', '100%'))
         self.theme.set_language(get_language())
+        from .update.manager import UpdateManager
+        self.updates = UpdateManager(self)
         self.views, self.nav_buttons = {}, {}
         self.current = None
         self.sidebar_expanded = bool(self.prefs.get('sidebar_expanded', True))
@@ -62,6 +64,7 @@ class LabStudio(tk.Tk):
         self.bind_all('<Control-comma>', self.open_settings)
         self.report_callback_exception = self.callback_error
         self.deiconify()
+        self.after(1000, self.updates.start)
         self.after(30, lambda: self.show(initial_tool or self.prefs.get('tool', TOOLS[0][0])))
 
     # ---------- layout ----------
@@ -93,6 +96,10 @@ class LabStudio(tk.Tk):
         gear = ttk.Button(status_row, text=' ' + T('设置'), image=self.theme.icon('gear'), compound='left',
                           style='PreviewTool.TButton', command=self.open_settings)
         gear.pack(side='right', pady=pad(3))
+        # Shown only when a newer signed release is available.
+        self.update_button = ttk.Button(status_row, style='HeadAccent.TButton', command=lambda: self.updates.install())
+        self.update_anchor = gear
+        self.show_update_button(self.updates.release)
         ttk.Label(status_row, text=T('Ctrl+O 打开 · Ctrl+S 导出 · F5 刷新预览'), style='Status.TLabel').pack(side='right', padx=pad(0, 6))
         self.stage = ttk.Frame(main, style='Canvas.TFrame')
         self.stage.pack(fill='both', expand=True)
@@ -266,6 +273,16 @@ class LabStudio(tk.Tk):
         self.prefs.set('sidebar_expanded', self.sidebar_expanded)
         self.build_sidebar(animate=True)
 
+    def show_update_button(self, release):
+        button = getattr(self, 'update_button', None)
+        if button is None or not button.winfo_exists():
+            return
+        if release:
+            button.configure(text=T('更新到 {version}').format(version=release['version']))
+            button.pack(side='right', padx=self.theme.pad(0, 8), pady=self.theme.pad(3), before=self.update_anchor)
+        else:
+            button.pack_forget()
+
     def open_settings(self, _=None):
         window = getattr(self, 'settings_window', None)
         if window is not None and window.winfo_exists():
@@ -425,6 +442,7 @@ class LabStudio(tk.Tk):
 
     def close(self):
         self.cancel_animations()
+        self.updates.stop()
         for view in self.views.values():
             if hasattr(view, 'close'):
                 try:

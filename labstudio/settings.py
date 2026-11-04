@@ -46,6 +46,17 @@ class SettingsWindow(tk.Toplevel):
         box.bind('<<ComboboxSelected>>', lambda e: self.change_language())
         hint(body, T('切换语言会重新载入界面。'))
 
+        body = section(outer, T('更新'))
+        updates = app.updates
+        ttk.Label(body, textvariable=updates.status, style='Muted.TLabel', wraplength=d(360), justify='left').pack(fill='x')
+        row = ttk.Frame(body)
+        row.pack(fill='x', pady=(d(8), 0))
+        ttk.Button(row, text=T('检查更新'), command=lambda: updates.check(manual=True)).pack(side='left')
+        self.auto_update = tk.BooleanVar(self, value=updates.automatic)
+        ttk.Checkbutton(row, text='  ' + T('启动时自动检查'), variable=self.auto_update,
+                        command=lambda: updates.set_automatic(self.auto_update.get())).pack(side='left', padx=(d(14), 0))
+        hint(body, T('更新包经过数字签名验证；下载、安装和重启前都会先征求你的同意。'))
+
         body = section(outer, T('数据存储'))
         path = ttk.Label(body, text=str(data_directory()), style='Muted.TLabel', wraplength=d(360), justify='left')
         path.pack(fill='x')

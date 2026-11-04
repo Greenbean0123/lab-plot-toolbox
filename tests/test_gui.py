@@ -222,6 +222,7 @@ if __name__ == '__main__':
         import os
         os.environ['LOCALAPPDATA'] = folder  # keep the user's real preferences untouched
         os.environ['LABSTUDIO_DATA_DIR'] = folder  # (macOS uses ~/Library otherwise)
+        os.environ['LABSTUDIO_NO_UPDATE_CHECK'] = '1'  # no network during tests
         try:
             main(Path(folder))
         except Exception:

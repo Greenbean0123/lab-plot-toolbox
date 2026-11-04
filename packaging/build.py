@@ -6,6 +6,7 @@
 Results go to release/. The packaged app is run once with --self-test; the build fails if that fails.
 """
 import json
+import os
 import platform
 import plistlib
 import runpy
@@ -21,10 +22,11 @@ VERSION = runpy.run_path(str(ROOT / 'labstudio' / 'paths.py'))['APP_VERSION']
 SYSTEM = platform.system()
 ARCH = {'amd64': 'x64', 'x86_64': 'x64' if SYSTEM == 'Windows' else 'x86_64', 'arm64': 'arm64'}.get(platform.machine().lower(),
                                                                                                     platform.machine())
-RELEASE = ROOT / 'release'
+RELEASE = Path(os.environ.get('LABSTUDIO_RELEASE_DIR', ROOT / 'release'))  # override for test builds
 WORK = ROOT / 'build' / 'pyinstaller'
 
 HIDDEN = ['labstudio.xrd.view', 'labstudio.tem.view', 'labstudio.uvvis.view',  # loaded by name on first use
+          'labstudio.update.manager', 'labstudio.update.installer', 'labstudio.update.cleanup',
           'labstudio.settings', 'labstudio.selftest', 'PIL._tkinter_finder',
           'matplotlib.backends.backend_tkagg', 'matplotlib.backends.backend_agg',
           'matplotlib.backends.backend_pdf', 'matplotlib.backends.backend_svg']
@@ -41,7 +43,8 @@ def pyinstaller(onefile):
     args = [sys.executable, '-m', 'PyInstaller', '--noconfirm', '--clean', '--windowed', '--name', NAME,
             '--distpath', ROOT / 'dist', '--workpath', WORK, '--specpath', WORK,
             '--add-data', f'{ROOT / "labstudio" / "assets"}:labstudio/assets',
-            '--add-data', f'{ROOT / "demo-data"}:demo-data']
+            '--add-data', f'{ROOT / "demo-data"}:demo-data',
+            '--add-data', f'{ROOT / "labstudio" / "update_config.json"}:labstudio']
     for module in HIDDEN:
         args += ['--hidden-import', module]
     for module in EXCLUDE:
