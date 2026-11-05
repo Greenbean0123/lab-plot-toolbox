@@ -158,6 +158,7 @@ class LabStudio(tk.Tk):
 
         def settle():
             if old is not None and old.winfo_exists():
+                self.cancel_timers_of([old])
                 old.destroy()
             inner.place(x=0, y=0, relheight=1, width=width)
             self.sidebar.place(x=0, y=0, relheight=1, width=width)
@@ -179,6 +180,7 @@ class LabStudio(tk.Tk):
             return
         if width > start:  # expanding: show the new content now and reveal it
             inner.place(x=0, y=0, relheight=1, width=width)
+            self.cancel_timers_of([old])
             old.destroy()
             old = None
         # collapsing: keep the old content until the overlay has shrunk
@@ -395,6 +397,7 @@ class LabStudio(tk.Tk):
         if self._status_job is not None:
             self.after_cancel(self._status_job)
             self._status_job = None
+        self.cancel_timers_of(self.winfo_children())
         for child in self.winfo_children():
             child.destroy()
         self.views, self.nav_buttons, self.current = {}, {}, None
@@ -432,6 +435,27 @@ class LabStudio(tk.Tk):
     def callback_error(self, exc, value, tb):
         traceback.print_exception(exc, value, tb)
         messagebox.showerror(app_name(), T('发生错误：\n{error}').format(error=value))
+
+    def cancel_timers_of(self, widgets):
+        """Cancel Tk timers whose callbacks belong to widgets about to be destroyed.
+
+        Destroying a widget deletes its Python callbacks but not Tcl's pending timers; a later callback can reuse
+        the same command name, and the stale timer would then call that unrelated function.
+        """
+        names, stack = set(), list(widgets)
+        while stack:
+            widget = stack.pop()
+            names.update(getattr(widget, '_tclCommands', None) or ())
+            stack.extend(widget.winfo_children())
+        if not names:
+            return
+        for job in self.tk.splitlist(self.tk.call('after', 'info')):
+            try:
+                script = self.tk.splitlist(self.tk.call('after', 'info', job))[0]
+            except tk.TclError:
+                continue
+            if any(word in names for word in self.tk.splitlist(script)):
+                self.tk.call('after', 'cancel', job)
 
     def cancel_animations(self):
         for name in ('_swap_job', '_sidebar_job', '_indicator_job', '_preload_job'):

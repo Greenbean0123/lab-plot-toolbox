@@ -1,4 +1,4 @@
-## Lab Plot Toolbox 0.1.4
+## Lab Plot Toolbox 0.1.5
 
 **Lab Plot Studio is now called Lab Plot Toolbox.** Windows installations update automatically; macOS 0.1.2 installations need to download this version once.
 
@@ -8,9 +8,9 @@ TEM scale bars and size distributions, stacked XRD patterns with phase identific
 
 | System | File |
 |---|---|
-| Windows 10 / 11 (64-bit) | `LabPlotToolbox-0.1.4-Windows-x64.exe` (single file) or `…-Windows-x64.zip` (folder, starts faster) |
-| macOS 11+ on Apple silicon (M1–M4) | `LabPlotToolbox-0.1.4-macOS-arm64.dmg` |
-| macOS 11+ on Intel | `LabPlotToolbox-0.1.4-macOS-x86_64.dmg` |
+| Windows 10 / 11 (64-bit) | `LabPlotToolbox-0.1.5-Windows-x64.exe` (single file) or `…-Windows-x64.zip` (folder, starts faster) |
+| macOS 11+ on Apple silicon (M1–M4) | `LabPlotToolbox-0.1.5-macOS-arm64.dmg` |
+| macOS 11+ on Intel | `LabPlotToolbox-0.1.5-macOS-x86_64.dmg` |
 
 Every package was started once on its build machine and passed an automatic self-test of all three tools.
 

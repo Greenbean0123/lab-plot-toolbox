@@ -167,6 +167,11 @@ def main(out):
     while time.time() < end:
         app.update()
     check('Language switch with a pending redraw raises no errors', not errors, errors[0][-200:] if errors else '')
+    leftover = app.views['xrd'].after(60000, lambda: None)  # a timer a page forgot to cancel
+    app.rebuild()
+    check('Rebuild cancels timers left by destroyed pages',
+          leftover not in app.tk.splitlist(app.tk.call('after', 'info')))
+    pump(app, 10)
     pump(app, 30)
     check('Switch back to English', app.title().startswith('Lab Plot Toolbox') and app.prefs.get('language') == 'en')
 
