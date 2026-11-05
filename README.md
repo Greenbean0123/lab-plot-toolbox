@@ -1,77 +1,88 @@
-# Lab Plot Toolbox · 科研绘图工具箱
+# Lab Plot Toolbox
 
 TEM scale bars and particle-size distributions, stacked XRD patterns with phase identification, and UV-Vis spectra — in one
 desktop app for Windows and macOS. English and Chinese interface, light and dark theme.
 
-把三个独立程序（[TEM-graph-tool](https://github.com/Greenbean0123/TEM-graph-tool)、
-[xrd-plotter](https://github.com/Greenbean0123/xrd-plotter)、[uvvis-plotter](https://github.com/Greenbean0123/uvvis-plotter)）
-合并成一个桌面应用。
+Lab Plot Toolbox combines three earlier standalone programs —
+[TEM-graph-tool](https://github.com/Greenbean0123/TEM-graph-tool), [xrd-plotter](https://github.com/Greenbean0123/xrd-plotter)
+and [uvvis-plotter](https://github.com/Greenbean0123/uvvis-plotter) — into a single app.
 
-## 下载 / Download
+## Download
 
-到 [Releases](https://github.com/Greenbean0123/lab-plot-toolbox/releases) 下载：
+Get the latest version from [Releases](https://github.com/Greenbean0123/lab-plot-toolbox/releases/latest):
 
-| 系统 | 文件 |
+| System | File |
 |---|---|
-| Windows 10 / 11 | `LabPlotToolbox-<版本>-Windows-x64.exe`（单文件）或 `…-Windows-x64.zip`（文件夹版，启动更快） |
-| macOS（M1–M4 芯片） | `LabPlotToolbox-<版本>-macOS-arm64.dmg` |
-| macOS（Intel） | `LabPlotToolbox-<版本>-macOS-x86_64.dmg` |
+| Windows 10 / 11 (64-bit) | `LabPlotToolbox-<version>-Windows-x64.exe` (single file) or `…-Windows-x64.zip` (folder, starts faster) |
+| macOS 11+ on Apple silicon (M1–M4) | `LabPlotToolbox-<version>-macOS-arm64.dmg` |
+| macOS 11+ on Intel | `LabPlotToolbox-<version>-macOS-x86_64.dmg` |
 
-- macOS 版没有经过 Apple 公证：第一次打开时右键点 App → **打开** → **打开**（或在「系统设置 → 隐私与安全性」里点 **仍要打开**）。
-- Windows 可能提示未知发布者：点 **更多信息** → **仍要运行**。
+- **macOS:** the app is not notarized by Apple. On first launch, right-click the app → **Open** → **Open**
+  (or System Settings → Privacy & Security → **Open Anyway**).
+- **Windows:** SmartScreen may warn about an unknown publisher; choose **More info** → **Run anyway**.
+- The `…-XRD-Plotter-update.zip` files are only used by XRD Plotter's built-in updater; you don't need them.
 
-每个安装包都在构建机器上启动过一次，并通过了覆盖三个工具的自检（`--self-test`）。
+Every package is started once on its build machine and passes a self-test of all three tools (`--self-test`).
 
-## 功能
+## Updates
 
-| 工具 | 功能 |
+The app checks for new versions at startup and asks before installing (Settings → Updates). Updates are signed
+(Ed25519) and checked by size and SHA-256 before anything is replaced; a failed update rolls back automatically.
+Existing XRD Plotter installations on Windows and macOS are offered Lab Plot Toolbox through XRD Plotter's own updater.
+
+## Features
+
+| Tool | What it does |
 |---|---|
-| **XRD** | 样品图谱与标准卡片（PDF / CIF / XY / CSV）堆叠对照；图层拖动排序与显隐；标签样式、调色板、线宽；导出图片和处理数据；启动文件夹自动加载 |
-| **XRD 相分析** | 多相匹配并给出 (hkl) 归属；谢乐公式晶粒尺寸；把卡片画成指定晶粒尺寸的纳米晶峰形 |
-| **TEM** | 自动识别原标尺并重新标定；可拖动的新标尺；局部放大图；直径直方图 + 高斯拟合，并可叠加到 TEM 图上；批量导出；项目文件 |
-| **UV-Vis** | 多条光谱导入；三种归一化方式；导出图片和数据 |
+| **XRD** | Stack sample patterns with reference cards (PDF / CIF / XY / CSV); drag to reorder and toggle layers; label styles, palettes, line widths; export figures and processed data; auto-load a startup folder |
+| **XRD phase ID** | Multi-phase matching with (hkl) assignment; Scherrer crystallite size; draw reference cards as nanocrystal-broadened peaks for a chosen size |
+| **TEM** | Read and recalibrate the original scale bar automatically; draggable new scale bar; zoomed inset; diameter histogram with Gaussian fit, optionally overlaid on the image; batch export; project files |
+| **UV-Vis** | Import multiple spectra; three normalization modes; export figures and data |
 
-计算部分沿用原项目代码，`tests/test_equivalence.py` 会与原程序逐像素对比输出。
+The calculations reuse the original projects' code; `tests/test_equivalence.py` compares the output with the original
+programs pixel by pixel.
 
-## 从源码运行
+## Run from source
 
-Windows 上双击 **`启动.bat`**（首次运行会建立 `.venv` 并安装依赖）。也可以手动：
+On Windows, double-click **`启动.bat`** (the first run creates `.venv` and installs dependencies). Or manually:
 
 ```sh
 python -m venv .venv
 .venv\Scripts\python -m pip install -r requirements.txt
-.venv\Scripts\python main.py          # xrd | tem | uvvis 可作为参数
+.venv\Scripts\python main.py          # optionally pass xrd | tem | uvvis
 ```
 
-需要 Python 3.9+（含 Tkinter）。运行依赖约 150 MB，不需要 SciPy。
+Requires Python 3.9+ with Tkinter. Runtime dependencies are about 150 MB; SciPy is not needed.
 
-## 打包
+## Build
 
 ```sh
 pip install -r requirements-build.txt
-python packaging/build.py            # Windows: 单个 exe；macOS: .app → .zip + .dmg
-python packaging/build.py --onedir   # Windows: 文件夹版 zip
+python packaging/build.py            # Windows: single exe; macOS: .app → .zip + .dmg
+python packaging/build.py --onedir   # Windows: folder version as a zip
 ```
 
-推送到 `main` 时，GitHub Actions 会在 Windows、macOS（Apple 芯片）和 macOS（Intel）上测试、打包并自检；
-推送 `v*` 标签（与 `labstudio/paths.py` 里的版本号一致）时自动发布 Release。
+Every push to `main` is tested, packaged and self-tested by GitHub Actions on Windows, macOS (Apple silicon) and
+macOS (Intel). Pushing a `v*` tag that matches the version in `labstudio/paths.py` publishes a release.
 
-## 测试
+## Tests
 
 ```sh
-python tests/test_gui.py        # 界面操作与导出
-python tests/test_phase.py      # 相分析与谢乐公式
-python tests/test_i18n.py       # 每条界面文字都有英文翻译
+python tests/test_gui.py          # interface actions and exports
+python tests/test_phase.py        # phase matching and Scherrer size
+python tests/test_i18n.py         # every interface string has an English translation
+python tests/test_updates.py      # signed updates, install and rollback
 pip install -r requirements-dev.txt
-python tests/test_numerics.py   # 与 SciPy 对比
-python tests/test_equivalence.py  # 与原程序对比（需要原项目在同级目录）
+python tests/test_numerics.py     # compare with SciPy
+python tests/test_equivalence.py  # compare with the original programs (needs them in sibling folders)
 ```
 
-## 界面语言与设置
+## Language and settings
 
-默认英文。右下角齿轮（或 `Ctrl+,`）打开设置：主题、界面大小、语言。偏好保存在
-`%LOCALAPPDATA%\LabPlotStudio`（macOS：`~/Library/Application Support/LabPlotStudio`），不写入程序文件夹。
+English by default. The gear in the bottom-right corner (or `Ctrl+,`) opens Settings: theme, interface size, language
+and updates. Preferences are stored in `%LOCALAPPDATA%\LabPlotStudio` (macOS: `~/Library/Application Support/LabPlotStudio`),
+never in the program folder.
 
-快捷键：`Ctrl+O` 打开 · `Ctrl+S` 导出 · `F5` 刷新预览 · TEM 预览里滚轮缩放、右键拖动平移
+Shortcuts: `Ctrl+O` open · `Ctrl+S` export · `F5` refresh preview · in the TEM preview, scroll to zoom and right-drag to pan
 
 MIT License.
