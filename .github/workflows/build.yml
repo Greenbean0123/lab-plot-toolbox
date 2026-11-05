@@ -83,7 +83,13 @@ jobs:
 
       - name: Build macOS packages
         if: runner.os == 'macOS'
-        run: python packaging/build.py
+        run: |
+          python packaging/build.py
+          python packaging/build.py --xrd-compat
+
+      - name: Migrate a real XRD Plotter 0.0.5 app with its own updater
+        if: runner.os == 'macOS'
+        run: python tests/ci_xrd_migration_mac.py
 
       - uses: actions/upload-artifact@v7
         with:

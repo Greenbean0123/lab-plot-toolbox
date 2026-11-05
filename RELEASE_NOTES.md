@@ -1,4 +1,4 @@
-## Lab Plot Toolbox 0.1.3
+## Lab Plot Toolbox 0.1.4
 
 **Lab Plot Studio is now called Lab Plot Toolbox.** Windows installations update automatically; macOS 0.1.2 installations need to download this version once.
 
@@ -8,9 +8,9 @@ TEM scale bars and size distributions, stacked XRD patterns with phase identific
 
 | System | File |
 |---|---|
-| Windows 10 / 11 (64-bit) | `LabPlotToolbox-0.1.3-Windows-x64.exe` (single file) or `…-Windows-x64.zip` (folder, starts faster) |
-| macOS 11+ on Apple silicon (M1–M4) | `LabPlotToolbox-0.1.3-macOS-arm64.dmg` |
-| macOS 11+ on Intel | `LabPlotToolbox-0.1.3-macOS-x86_64.dmg` |
+| Windows 10 / 11 (64-bit) | `LabPlotToolbox-0.1.4-Windows-x64.exe` (single file) or `…-Windows-x64.zip` (folder, starts faster) |
+| macOS 11+ on Apple silicon (M1–M4) | `LabPlotToolbox-0.1.4-macOS-arm64.dmg` |
+| macOS 11+ on Intel | `LabPlotToolbox-0.1.4-macOS-x86_64.dmg` |
 
 Every package was started once on its build machine and passed an automatic self-test of all three tools.
 
@@ -26,5 +26,5 @@ Every package was started once on its build machine and passed an automatic self
 - TEM: automatic scale-bar reading and recalibration, draggable scale bar, zoomed inset, diameter histogram with Gaussian fit and overlay
 - UV-Vis: three normalization modes, figure and data export
 - English / Chinese interface, light / dark theme, collapsible sidebar
-- Windows users of XRD Plotter receive this version through XRD Plotter's own updater; macOS users of XRD Plotter download the DMG above once
+- XRD Plotter users on Windows and macOS receive this version through XRD Plotter's own updater (the `…-XRD-Plotter-update.zip` files are only for that; everyone else uses the DMG / EXE)
 - Signed automatic updates: the app checks for new versions at startup (Settings -> Updates) and asks before installing

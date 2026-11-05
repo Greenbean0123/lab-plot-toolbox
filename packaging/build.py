@@ -2,6 +2,10 @@
 
     python packaging/build.py            # Windows: single .exe   macOS: .app -> .zip and .dmg
     python packaging/build.py --onedir   # Windows: folder build (faster start-up), zipped
+    python packaging/build.py --xrd-compat   # macOS: Lab Plot Toolbox packaged as "XRD Plotter.app" (see below)
+
+The --xrd-compat package lets installed XRD Plotter apps on macOS update themselves to Lab Plot Toolbox: XRD Plotter's
+installer only accepts a ZIP holding "XRD Plotter.app" with bundle id org.xrdplotter.app and the release version.
 
 Results go to release/. The packaged app is run once with --self-test; the build fails if that fails.
 """
@@ -18,6 +22,8 @@ from pathlib import Path
 
 ROOT = Path(__file__).resolve().parent.parent
 NAME = 'Lab Plot Toolbox'
+BUNDLE_ID = 'io.github.greenbean0123.labplotstudio'  # unchanged since 0.1.2, so installs keep updating
+XRD_NAME, XRD_BUNDLE_ID = 'XRD Plotter', 'org.xrdplotter.app'
 VERSION = runpy.run_path(str(ROOT / 'labstudio' / 'paths.py'))['APP_VERSION']
 SYSTEM = platform.system()
 ARCH = {'amd64': 'x64', 'x86_64': 'x64' if SYSTEM == 'Windows' else 'x86_64', 'arm64': 'arm64'}.get(platform.machine().lower(),
@@ -39,8 +45,8 @@ def run(cmd, **kwargs):
     subprocess.run([str(c) for c in cmd], check=True, cwd=ROOT, **kwargs)
 
 
-def pyinstaller(onefile):
-    args = [sys.executable, '-m', 'PyInstaller', '--noconfirm', '--clean', '--windowed', '--name', NAME,
+def pyinstaller(onefile, name=NAME, bundle_id=BUNDLE_ID):
+    args = [sys.executable, '-m', 'PyInstaller', '--noconfirm', '--clean', '--windowed', '--name', name,
             '--distpath', ROOT / 'dist', '--workpath', WORK, '--specpath', WORK,
             '--add-data', f'{ROOT / "labstudio" / "assets"}:labstudio/assets',
             '--add-data', f'{ROOT / "demo-data"}:demo-data',
@@ -54,7 +60,7 @@ def pyinstaller(onefile):
         args += ['--onefile'] if onefile else ['--onedir']
     else:
         args += ['--icon', ROOT / 'labstudio' / 'assets' / 'app.icns', '--onedir',
-                 '--osx-bundle-identifier', 'io.github.greenbean0123.labplotstudio']
+                 '--osx-bundle-identifier', bundle_id]
     run(args + [ROOT / 'main.py'])
 
 
@@ -110,17 +116,24 @@ def build_windows(onefile):
     print(f'Built {target.name}: {size_mb(target):.1f} MB', flush=True)
 
 
-def build_mac():
-    pyinstaller(onefile=False)
-    app = ROOT / 'dist' / f'{NAME}.app'
+def build_mac(xrd_compat=False):
+    name, bundle_id = (XRD_NAME, XRD_BUNDLE_ID) if xrd_compat else (NAME, BUNDLE_ID)
+    pyinstaller(onefile=False, name=name, bundle_id=bundle_id)
+    app = ROOT / 'dist' / f'{name}.app'
     plist = app / 'Contents' / 'Info.plist'
     info = plistlib.loads(plist.read_bytes())
-    info.update(CFBundleShortVersionString=VERSION, CFBundleVersion=VERSION, CFBundleDisplayName=NAME,
+    info.update(CFBundleShortVersionString=VERSION, CFBundleVersion=VERSION, CFBundleDisplayName=name,
                 NSHighResolutionCapable=True, LSMinimumSystemVersion='11.0', NSHumanReadableCopyright='MIT License')
     plist.write_bytes(plistlib.dumps(info))
     run(['codesign', '--force', '--deep', '--sign', '-', app])  # ad-hoc signature (not notarized)
-    self_test(app / 'Contents' / 'MacOS' / NAME)
+    self_test(app / 'Contents' / 'MacOS' / name)
     RELEASE.mkdir(exist_ok=True)
+    if xrd_compat:
+        path = RELEASE / f'LabPlotToolbox-{VERSION}-macOS-{ARCH}-XRD-Plotter-update.zip'
+        path.unlink(missing_ok=True)
+        run(['ditto', '-c', '-k', '--sequesterRsrc', '--keepParent', app, path])
+        print(f'Built {path.name}: {size_mb(path):.1f} MB', flush=True)
+        return
     stem = f'LabPlotToolbox-{VERSION}-macOS-{ARCH}'
     zip_path = RELEASE / f'{stem}.zip'
     zip_path.unlink(missing_ok=True)
@@ -139,6 +152,6 @@ if __name__ == '__main__':
     if SYSTEM == 'Windows':
         build_windows(onefile='--onedir' not in sys.argv)
     elif SYSTEM == 'Darwin':
-        build_mac()
+        build_mac(xrd_compat='--xrd-compat' in sys.argv)
     else:
         raise SystemExit('Build on Windows or macOS.')
