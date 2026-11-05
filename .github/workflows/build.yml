@@ -151,7 +151,7 @@ jobs:
         run: |
           set -euo pipefail
           mapfile -t assets < <(find artifacts -type f \( -name 'LabPlotToolbox-*.exe' -o -name 'LabPlotToolbox-*.zip' -o -name 'LabPlotToolbox-*.dmg' \))
-          sha256sum "${assets[@]}" | sed 's#  artifacts/[^/]*/#  #' > SHA256SUMS.txt
+          sha256sum "${assets[@]}" | sed 's#  artifacts/.*/#  #' > SHA256SUMS.txt
           # updates.json must sit on the latest release: installed apps read releases/latest/download/updates.json
           gh release create "$TAG" "${assets[@]}" updates.json SHA256SUMS.txt --title "Lab Plot Toolbox $TAG" \
             --notes-file RELEASE_NOTES.md --verify-tag --latest
