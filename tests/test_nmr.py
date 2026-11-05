@@ -141,7 +141,12 @@ def gui(tmp):
     errors = []
     app = LabStudio('nmr')
     app.report_callback_exception = lambda *exc: errors.append(''.join(traceback.format_exception(*exc)))
-    for _ in range(30):
+    import time
+    end = time.time() + 15  # the shell opens the tool from a timer; wait for it, not for a number of updates
+    while 'nmr' not in app.views and time.time() < end:
+        app.update()
+        time.sleep(0.01)
+    for _ in range(10):
         app.update()
     view = app.views['nmr']
     view.folder.set(str(tmp))
