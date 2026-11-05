@@ -86,6 +86,7 @@ helper = subprocess.Popen([str(helper_app / 'Contents' / 'MacOS' / 'XRD Plotter'
                           cwd=job_dir, env=env)
 t0, steps = time.time(), {}
 while time.time() - t0 < 240:
+    running_app.poll()  # reap the stand-in once it exits; a zombie still answers os.kill(pid, 0)
     if 'ready' not in steps and (job_dir / 'helper-ready').exists():
         steps['ready'] = round(time.time() - t0, 1)
         (job_dir / 'install-approved').write_text('approved')
