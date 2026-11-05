@@ -1,6 +1,6 @@
 """Self-test for packaged builds: `Lab Plot Toolbox --self-test report.json`.
 
-Drives all three tools with synthetic data inside the frozen app, writes a JSON report and returns 0 on success.
+Drives all four tools with synthetic data inside the frozen app, writes a JSON report and returns 0 on success.
 Used on the build machines (Windows and macOS) so every published package has been exercised once.
 """
 import json
@@ -109,6 +109,23 @@ def run(report_path):
         uv.draw_on(figure, 'export')
         figure.savefig(work / 'uv.svg')
         check('UV-Vis export', (work / 'uv.svg').stat().st_size > 1000)
+
+        # NMR: synthetic Bruker experiment, solvent referencing, figure, exports
+        app.show('nmr')
+        pump(0.6)
+        nmr = app.views['nmr']
+        from .nmr import core as nmr_core
+        pdata = nmr_core.write_demo_bruker(str(work / 'nmr' / 'demo' / '1'), solvent='CDCl3',
+                                           peaks=((7.20, 1.0, 0.003), (5.80, 0.6, 0.004), (4.95, 0.5, 0.004)))
+        nmr.add_trace(pdata)
+        pump()
+        trace = nmr.doc['traces'][0]
+        check('NMR Bruker reader and referencing', abs(trace['shift'] - 0.06) < 0.005, trace['ref_note'])
+        meta = nmr.update_plot()
+        check('NMR figure', meta is not None and len(meta['traces']) == 1)
+        for fmt in ('png', 'pdf', 'svg'):
+            nmr.export_figure(str(work / f'nmr.{fmt}'), dpi=150)
+            check(f'NMR export {fmt.upper()}', (work / f'nmr.{fmt}').stat().st_size > 1000)
 
         # Interface: language and theme switching
         app.change_language('zh')

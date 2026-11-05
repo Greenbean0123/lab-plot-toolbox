@@ -20,6 +20,7 @@ TOOLS = [
     ('xrd', 'XRD', '堆叠图谱 · 标准卡片', 'labstudio.xrd.view', 'XRDView'),
     ('tem', 'TEM', '标尺 · 粒径分布', 'labstudio.tem.view', 'TEMView'),
     ('uvvis', 'UV-Vis', '吸收光谱 · 归一化', 'labstudio.uvvis.view', 'UVVisView'),
+    ('nmr', 'NMR', '堆叠谱图 · 自动定标', 'labstudio.nmr.view', 'NMRView'),
 ]
 
 
@@ -126,7 +127,7 @@ class LabStudio(tk.Tk):
             names = ttk.Frame(top, style='Sidebar.TFrame')
             names.pack(side='left')
             ttk.Label(names, text=app_name(), style='Brand.TLabel').pack(anchor='w')
-            subtitle = 'Lab Plot Toolbox' if get_language() == 'zh' else 'TEM · XRD · UV-Vis'
+            subtitle = 'Lab Plot Toolbox' if get_language() == 'zh' else 'TEM · XRD · UV-Vis · NMR'
             ttk.Label(names, text=f'{subtitle}  {APP_VERSION}', style='SidebarMuted.TLabel').pack(anchor='w')
             ttk.Label(inner, text=T('工具'), style='SidebarMuted.TLabel', padding=pad(24, 0, 0, 8)).pack(fill='x')
         else:

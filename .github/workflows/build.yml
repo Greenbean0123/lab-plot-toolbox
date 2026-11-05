@@ -74,6 +74,7 @@ jobs:
           python tests/test_phase.py
           python tests/test_updates.py
           python tests/test_gui.py
+          python tests/test_nmr.py
 
       - name: Build Windows packages
         if: runner.os == 'Windows'

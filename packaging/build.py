@@ -31,7 +31,7 @@ ARCH = {'amd64': 'x64', 'x86_64': 'x64' if SYSTEM == 'Windows' else 'x86_64', 'a
 RELEASE = Path(os.environ.get('LABSTUDIO_RELEASE_DIR', ROOT / 'release'))  # override for test builds
 WORK = ROOT / 'build' / 'pyinstaller'
 
-HIDDEN = ['labstudio.xrd.view', 'labstudio.tem.view', 'labstudio.uvvis.view',  # loaded by name on first use
+HIDDEN = ['labstudio.xrd.view', 'labstudio.tem.view', 'labstudio.uvvis.view', 'labstudio.nmr.view',  # loaded by name on first use
           'labstudio.update.manager', 'labstudio.update.installer', 'labstudio.update.cleanup',
           'labstudio.settings', 'labstudio.selftest', 'PIL._tkinter_finder',
           'matplotlib.backends.backend_tkagg', 'matplotlib.backends.backend_agg',

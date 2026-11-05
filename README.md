@@ -22,7 +22,7 @@ Get the latest version from [Releases](https://github.com/Greenbean0123/lab-plot
 - **Windows:** SmartScreen may warn about an unknown publisher; choose **More info** → **Run anyway**.
 - The `…-XRD-Plotter-update.zip` files are only used by XRD Plotter's built-in updater; you don't need them.
 
-Every package is started once on its build machine and passes a self-test of all three tools (`--self-test`).
+Every package is started once on its build machine and passes a self-test of all four tools (`--self-test`).
 
 ## Updates
 
@@ -38,6 +38,7 @@ Existing XRD Plotter installations on Windows and macOS are offered Lab Plot Too
 | **XRD phase ID** | Multi-phase matching with (hkl) assignment; Scherrer crystallite size; draw reference cards as nanocrystal-broadened peaks for a chosen size |
 | **TEM** | Read and recalibrate the original scale bar automatically; draggable new scale bar; zoomed inset; diameter histogram with Gaussian fit, optionally overlaid on the image; batch export; project files |
 | **UV-Vis** | Import multiple spectra; three normalization modes; export figures and data |
+| **NMR** | Scan a folder of Bruker experiments (1H, 13C, DEPT, 77Se …); automatic solvent referencing and DEPT phase check; stacked traces with broken axes, colour windows and letter labels; drag labels and traces in the preview; automatic peak picking and integration ranges with multiplicity, relative integrals (nuclei or mmol against an internal standard) and CSV export; overlap warnings; settings saved as JSON |
 
 The calculations reuse the original projects' code; `tests/test_equivalence.py` compares the output with the original
 programs pixel by pixel.
@@ -70,6 +71,7 @@ macOS (Intel). Pushing a `v*` tag that matches the version in `labstudio/paths.p
 ```sh
 python tests/test_gui.py          # interface actions and exports
 python tests/test_phase.py        # phase matching and Scherrer size
+python tests/test_nmr.py          # NMR reader, referencing and preview interactions
 python tests/test_i18n.py         # every interface string has an English translation
 python tests/test_updates.py      # signed updates, install and rollback
 pip install -r requirements-dev.txt
