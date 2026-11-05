@@ -25,7 +25,7 @@ def app_name():
 
 EN = {
     # ---- shell ----
-    '科研绘图工具箱': 'Lab Plot Studio',
+    '科研绘图工具箱': 'Lab Plot Toolbox',
     '标尺 · 粒径分布': 'Scale bar · Size',
     '堆叠图谱 · 标准卡片': 'Patterns · References',
     '吸收光谱 · 归一化': 'Spectra · Normalize',

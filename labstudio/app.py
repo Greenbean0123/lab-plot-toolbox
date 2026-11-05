@@ -30,7 +30,7 @@ class LabStudio(tk.Tk):
         self.prefs = Preferences()
         set_language(self.prefs.get('language', 'en'))
         self.title(app_name())
-        self.tk.call('tk', 'appname', 'Lab Plot Studio')
+        self.tk.call('tk', 'appname', 'Lab Plot Toolbox')
         sw, sh = self.winfo_screenwidth(), self.winfo_screenheight()
         self.dpi = d = max(1.0, self.winfo_fpixels('1i') / 96)
         w, h = min(round(1480 * d), sw - 80), min(round(940 * d), sh - 110)
@@ -126,7 +126,7 @@ class LabStudio(tk.Tk):
             names = ttk.Frame(top, style='Sidebar.TFrame')
             names.pack(side='left')
             ttk.Label(names, text=app_name(), style='Brand.TLabel').pack(anchor='w')
-            subtitle = 'Lab Plot Studio' if get_language() == 'zh' else 'TEM · XRD · UV-Vis'
+            subtitle = 'Lab Plot Toolbox' if get_language() == 'zh' else 'TEM · XRD · UV-Vis'
             ttk.Label(names, text=f'{subtitle}  {APP_VERSION}', style='SidebarMuted.TLabel').pack(anchor='w')
             ttk.Label(inner, text=T('工具'), style='SidebarMuted.TLabel', padding=pad(24, 0, 0, 8)).pack(fill='x')
         else:

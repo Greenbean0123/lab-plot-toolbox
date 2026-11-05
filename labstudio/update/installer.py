@@ -136,7 +136,7 @@ def rename_with_retry(source, destination):
 
 
 def launch(target, health=None):
-    executable = target / 'Contents' / 'MacOS' / 'Lab Plot Studio' if target.suffix == '.app' else target
+    executable = target / 'Contents' / 'MacOS' / 'Lab Plot Toolbox' if target.suffix == '.app' else target
     env = dict(os.environ, PYINSTALLER_RESET_ENVIRONMENT='1')
     env.pop(updater.HEALTH_ENV, None)
     if health:
@@ -220,7 +220,7 @@ def run(job_path):
             from tkinter import messagebox
             window = tk.Tk()
             window.withdraw()
-            messagebox.showerror('Lab Plot Studio update', f'{error}\n\nDetails: {result_path.parent}', parent=window)
+            messagebox.showerror('Lab Plot Toolbox update', f'{error}\n\nDetails: {result_path.parent}', parent=window)
             window.destroy()
         except Exception:
             pass

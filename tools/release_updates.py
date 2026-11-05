@@ -2,9 +2,9 @@
 
     python tools/release_updates.py --version 0.1.1 --notes-file RELEASE_NOTES.md \
         --base-url https://github.com/Greenbean0123/lab-plot-toolbox/releases/download/v0.1.1 \
-        --asset windows-x86_64=release/LabPlotStudio-0.1.1-Windows-x64.exe \
-        --asset macos-arm64=release/LabPlotStudio-0.1.1-macOS-arm64.zip \
-        --asset macos-x86_64=release/LabPlotStudio-0.1.1-macOS-x86_64.zip
+        --asset windows-x86_64=release/LabPlotToolbox-0.1.1-Windows-x64.exe \
+        --asset macos-arm64=release/LabPlotToolbox-0.1.1-macOS-arm64.zip \
+        --asset macos-x86_64=release/LabPlotToolbox-0.1.1-macOS-x86_64.zip
 
 The private key comes from the LABSTUDIO_SIGNING_KEY environment variable (a GitHub Actions secret) or from
 .release-keys/update-signing-key.pem. It is never committed or packaged; only its public key ships in the app.

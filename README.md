@@ -1,4 +1,4 @@
-# Lab Plot Studio · 科研绘图工具箱
+# Lab Plot Toolbox · 科研绘图工具箱
 
 TEM scale bars and particle-size distributions, stacked XRD patterns with phase identification, and UV-Vis spectra — in one
 desktop app for Windows and macOS. English and Chinese interface, light and dark theme.
@@ -13,9 +13,9 @@ desktop app for Windows and macOS. English and Chinese interface, light and dark
 
 | 系统 | 文件 |
 |---|---|
-| Windows 10 / 11 | `LabPlotStudio-<版本>-Windows-x64.exe`（单文件）或 `…-Windows-x64.zip`（文件夹版，启动更快） |
-| macOS（M1–M4 芯片） | `LabPlotStudio-<版本>-macOS-arm64.dmg` |
-| macOS（Intel） | `LabPlotStudio-<版本>-macOS-x86_64.dmg` |
+| Windows 10 / 11 | `LabPlotToolbox-<版本>-Windows-x64.exe`（单文件）或 `…-Windows-x64.zip`（文件夹版，启动更快） |
+| macOS（M1–M4 芯片） | `LabPlotToolbox-<版本>-macOS-arm64.dmg` |
+| macOS（Intel） | `LabPlotToolbox-<版本>-macOS-x86_64.dmg` |
 
 - macOS 版没有经过 Apple 公证：第一次打开时右键点 App → **打开** → **打开**（或在「系统设置 → 隐私与安全性」里点 **仍要打开**）。
 - Windows 可能提示未知发布者：点 **更多信息** → **仍要运行**。

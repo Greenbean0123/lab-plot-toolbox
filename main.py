@@ -1,4 +1,4 @@
-"""Lab Plot Studio / 科研绘图工具箱: TEM, XRD and UV-Vis plotting in one window.
+"""Lab Plot Toolbox / 科研绘图工具箱: TEM, XRD and UV-Vis plotting in one window.
 
 Run:  python main.py              (opens the last used tool)
       python main.py xrd          (xrd | tem | uvvis)

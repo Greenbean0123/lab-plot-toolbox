@@ -494,8 +494,14 @@ class ToolLayout:
         sub = ttk.Label(titles, text=subtitle, style='Sub.TLabel', wraplength=300, justify='left')
         sub.pack(anchor='w', fill='x', pady=(theme.d(2), 0))
         sub.bind('<Configure>', lambda e: sub.configure(wraplength=max(150, e.width)))
-        self.split = tk.PanedWindow(view, orient='horizontal', sashwidth=theme.d(6), sashrelief='flat',
-                                    opaqueresize=False, borderwidth=0, showhandle=False, sashcursor='sb_h_double_arrow')
+        # The divider between settings and preview: a visible line that brightens under the pointer; while dragging
+        # an accent guide line follows the mouse and the panes are resized once, on release.
+        self.split = tk.PanedWindow(view, orient='horizontal', sashwidth=theme.d(5), sashrelief='flat',
+                                    opaqueresize=False, borderwidth=0, showhandle=False, sashcursor='sb_h_double_arrow',
+                                    proxyrelief='flat', proxyborderwidth=0)
+        self._sash_hover = False
+        self.split.bind('<Motion>', self._hover_sash, add='+')
+        self.split.bind('<Leave>', lambda e: self._set_sash_hover(False), add='+')
         self.split.pack(fill='both', expand=True, padx=(0, theme.d(16)), pady=(0, theme.d(8)))
         self.controls = ttk.Frame(self.split, style='Canvas.TFrame')
         self.preview = ttk.Frame(self.split, style='Preview.TFrame')
@@ -505,7 +511,17 @@ class ToolLayout:
         self.paint()
 
     def paint(self):
-        self.split.configure(background=self.theme.c['canvas'])
+        c = self.theme.c
+        self.split.configure(background=c['faint'] if self._sash_hover else c['strong_border'], proxybackground=c['accent'])
+
+    def _hover_sash(self, event):
+        # The panes cover everything but the sash, so motion over the split itself is motion over the sash.
+        self._set_sash_hover(bool(self.split.identify(event.x, event.y)))
+
+    def _set_sash_hover(self, value):
+        if value != self._sash_hover:
+            self._sash_hover = value
+            self.paint()
 
     def action(self, text, command, accent=False):
         button = ttk.Button(self.actions, text=text, command=command, style='HeadAccent.TButton' if accent else 'Head.TButton')

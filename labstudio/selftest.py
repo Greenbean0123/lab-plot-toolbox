@@ -1,4 +1,4 @@
-"""Self-test for packaged builds: `Lab Plot Studio --self-test report.json`.
+"""Self-test for packaged builds: `Lab Plot Toolbox --self-test report.json`.
 
 Drives all three tools with synthetic data inside the frozen app, writes a JSON report and returns 0 on success.
 Used on the build machines (Windows and macOS) so every published package has been exercised once.
@@ -117,7 +117,7 @@ def run(report_path):
         app.change_language('en')
         app.set_theme('dark')
         pump(0.5)
-        check('English interface, dark theme', app.title().startswith('Lab Plot Studio') and app.theme.mode == 'dark')
+        check('English interface, dark theme', app.title().startswith('Lab Plot Toolbox') and app.theme.mode == 'dark')
         # Updater: the packaged app holds the public key and can verify a signed manifest.
         import base64
         from cryptography.hazmat.primitives import serialization

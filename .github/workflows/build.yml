@@ -1,4 +1,4 @@
-name: Build Lab Plot Studio
+name: Build Lab Plot Toolbox
 
 # Every push builds and self-tests Windows and macOS (Apple silicon + Intel) packages, downloadable from the run.
 # Pushing a tag such as v0.1.0 also publishes them as a GitHub release.
@@ -87,7 +87,7 @@ jobs:
 
       - uses: actions/upload-artifact@v7
         with:
-          name: LabPlotStudio-${{ runner.os }}-${{ matrix.arch || 'x64' }}
+          name: LabPlotToolbox-${{ runner.os }}-${{ matrix.arch || 'x64' }}
           path: |
             release/*
             build/selftest-*.json
@@ -132,9 +132,9 @@ jobs:
           find_one() { f="$(find artifacts -type f -name "$1")"; test -n "$f" || { echo "missing $1"; exit 1; }; echo "$f"; }
           python tools/release_updates.py --version "$version" --notes-file RELEASE_NOTES.md \
             --base-url "https://github.com/${{ github.repository }}/releases/download/$TAG" \
-            --asset "windows-x86_64=$(find_one "LabPlotStudio-$version-Windows-x64.exe")" \
-            --asset "macos-arm64=$(find_one "LabPlotStudio-$version-macOS-arm64.zip")" \
-            --asset "macos-x86_64=$(find_one "LabPlotStudio-$version-macOS-x86_64.zip")" \
+            --asset "windows-x86_64=$(find_one "LabPlotToolbox-$version-Windows-x64.exe")" \
+            --asset "macos-arm64=$(find_one "LabPlotToolbox-$version-macOS-arm64.zip")" \
+            --asset "macos-x86_64=$(find_one "LabPlotToolbox-$version-macOS-x86_64.zip")" \
             --output updates.json
       - name: Publish release
         env:
@@ -144,8 +144,8 @@ jobs:
         shell: bash
         run: |
           set -euo pipefail
-          mapfile -t assets < <(find artifacts -type f \( -name 'LabPlotStudio-*.exe' -o -name 'LabPlotStudio-*.zip' -o -name 'LabPlotStudio-*.dmg' \))
+          mapfile -t assets < <(find artifacts -type f \( -name 'LabPlotToolbox-*.exe' -o -name 'LabPlotToolbox-*.zip' -o -name 'LabPlotToolbox-*.dmg' \))
           sha256sum "${assets[@]}" | sed 's#  artifacts/[^/]*/#  #' > SHA256SUMS.txt
           # updates.json must sit on the latest release: installed apps read releases/latest/download/updates.json
-          gh release create "$TAG" "${assets[@]}" updates.json SHA256SUMS.txt --title "Lab Plot Studio $TAG" \
+          gh release create "$TAG" "${assets[@]}" updates.json SHA256SUMS.txt --title "Lab Plot Toolbox $TAG" \
             --notes-file RELEASE_NOTES.md --verify-tag --latest

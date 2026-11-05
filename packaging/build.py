@@ -17,7 +17,7 @@ import tempfile
 from pathlib import Path
 
 ROOT = Path(__file__).resolve().parent.parent
-NAME = 'Lab Plot Studio'
+NAME = 'Lab Plot Toolbox'
 VERSION = runpy.run_path(str(ROOT / 'labstudio' / 'paths.py'))['APP_VERSION']
 SYSTEM = platform.system()
 ARCH = {'amd64': 'x64', 'x86_64': 'x64' if SYSTEM == 'Windows' else 'x86_64', 'arm64': 'arm64'}.get(platform.machine().lower(),
@@ -101,12 +101,12 @@ def build_windows(onefile):
     if onefile:
         exe = ROOT / 'dist' / f'{NAME}.exe'
         self_test(exe)
-        target = RELEASE / f'LabPlotStudio-{VERSION}-Windows-{ARCH}.exe'
+        target = RELEASE / f'LabPlotToolbox-{VERSION}-Windows-{ARCH}.exe'
         shutil.copy2(exe, target)
     else:
         folder = ROOT / 'dist' / NAME
         self_test(folder / f'{NAME}.exe')
-        target = Path(shutil.make_archive(str(RELEASE / f'LabPlotStudio-{VERSION}-Windows-{ARCH}'), 'zip', folder.parent, NAME))
+        target = Path(shutil.make_archive(str(RELEASE / f'LabPlotToolbox-{VERSION}-Windows-{ARCH}'), 'zip', folder.parent, NAME))
     print(f'Built {target.name}: {size_mb(target):.1f} MB', flush=True)
 
 
@@ -121,7 +121,7 @@ def build_mac():
     run(['codesign', '--force', '--deep', '--sign', '-', app])  # ad-hoc signature (not notarized)
     self_test(app / 'Contents' / 'MacOS' / NAME)
     RELEASE.mkdir(exist_ok=True)
-    stem = f'LabPlotStudio-{VERSION}-macOS-{ARCH}'
+    stem = f'LabPlotToolbox-{VERSION}-macOS-{ARCH}'
     zip_path = RELEASE / f'{stem}.zip'
     zip_path.unlink(missing_ok=True)
     run(['ditto', '-c', '-k', '--sequesterRsrc', '--keepParent', app, zip_path])

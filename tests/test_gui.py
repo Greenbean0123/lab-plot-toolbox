@@ -145,7 +145,7 @@ def main(out):
     check('TEM: project saved in original format', project['version'] == 1 and len(project['images']) == 1)
 
     # ---- language ----
-    check('Default language is English', app.title().startswith('Lab Plot Studio') and tem.pages.titles[0] == 'Calibrate')
+    check('Default language is English', app.title().startswith('Lab Plot Toolbox') and tem.pages.titles[0] == 'Calibrate')
     check('English interface text', app.nav_buttons['tem'].cget('text').strip().endswith('Scale bar · Size'))
     app.change_language('zh')
     pump(app, 30)
@@ -168,7 +168,7 @@ def main(out):
         app.update()
     check('Language switch with a pending redraw raises no errors', not errors, errors[0][-200:] if errors else '')
     pump(app, 30)
-    check('Switch back to English', app.title().startswith('Lab Plot Studio') and app.prefs.get('language') == 'en')
+    check('Switch back to English', app.title().startswith('Lab Plot Toolbox') and app.prefs.get('language') == 'en')
 
     # ---- sidebar and settings ----
     check('XRD is the first tool in the sidebar', list(app.nav_buttons)[0] == 'xrd')

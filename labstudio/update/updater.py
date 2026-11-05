@@ -21,7 +21,7 @@ from urllib.parse import urlsplit
 from ..paths import APP_VERSION, data_directory as app_data_directory, legacy_xrd_directory
 
 MAX_DOWNLOAD = 1024 * 1024 * 1024
-APP_BUNDLE = 'Lab Plot Studio.app'
+APP_BUNDLE = 'Lab Plot Toolbox.app'
 BUNDLE_ID = 'io.github.greenbean0123.labplotstudio'
 HEALTH_ENV = 'LABSTUDIO_UPDATE_HEALTH_FILE'
 LEGACY_HEALTH_ENV = 'XRD_UPDATE_HEALTH_FILE'  # set by XRD Plotter's installer when it migrates to this app
@@ -111,7 +111,7 @@ def open_https(url):
             return super().redirect_request(request, fp, code, message, headers, newurl)
     opener = urllib.request.build_opener(HTTPSRedirects())
     response = opener.open(urllib.request.Request(url, headers={
-        'User-Agent': f'LabPlotStudio-Updater/{APP_VERSION}', 'Accept': 'application/json, application/octet-stream'}), timeout=20)
+        'User-Agent': f'LabPlotToolbox-Updater/{APP_VERSION}', 'Accept': 'application/json, application/octet-stream'}), timeout=20)
     require_https(response.geturl())
     return response
 
@@ -186,7 +186,7 @@ def installed_target():
         if target.suffix != '.app':
             raise ValueError('The running program is not a standalone Mac app.')
         if str(target).startswith('/Volumes/'):
-            raise ValueError('Move Lab Plot Studio to Applications before updating; do not run it from the disk image.')
+            raise ValueError('Move Lab Plot Toolbox to Applications before updating; do not run it from the disk image.')
     elif sys.platform == 'win32':
         if not is_onefile():
             raise ValueError('The folder version cannot replace itself. Download the new version from the release page.')
@@ -205,11 +205,11 @@ def start_installer(package, release):
     helper_folder = folder / 'helper'
     helper_folder.mkdir()
     if sys.platform == 'darwin':
-        helper_app = helper_folder / 'Lab Plot Studio Updater.app'
+        helper_app = helper_folder / 'Lab Plot Toolbox Updater.app'
         shutil.copytree(target, helper_app, symlinks=True)
         executable = helper_app / 'Contents' / 'MacOS' / Path(sys.executable).name
     else:
-        executable = helper_folder / 'LabPlotStudio-Updater.exe'
+        executable = helper_folder / 'LabPlotToolbox-Updater.exe'
         shutil.copy2(sys.executable, executable)
     job = {'target': str(target), 'package': str(package), 'release': release,
            'parent_pid': os.getpid(), 'parent_bootloader_pid': os.getppid(),
