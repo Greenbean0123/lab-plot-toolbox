@@ -21,7 +21,7 @@ jobs:
           - name: Windows x64
             os: windows-latest
           - name: macOS Apple silicon
-            os: macos-14
+            os: macos-15
             arch: arm64
           - name: macOS Intel
             os: macos-15-intel
