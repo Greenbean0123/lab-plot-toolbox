@@ -1,6 +1,6 @@
-## Lab Plot Toolbox 0.1.6
+## Lab Plot Toolbox 0.1.7
 
-**New: NMR tool.** Stacked Bruker NMR figures (1H, 13C, DEPT, 77Se …) with automatic referencing, integration and peak picking.
+**New look, and smoother switching.** A calmer, lighter interface, and tools and tabs now answer the click at once.
 
 TEM scale bars and size distributions, stacked XRD patterns with phase identification, UV-Vis spectra and NMR spectra — one window.
 
@@ -8,9 +8,9 @@ TEM scale bars and size distributions, stacked XRD patterns with phase identific
 
 | System | File |
 |---|---|
-| Windows 10 / 11 (64-bit) | `LabPlotToolbox-0.1.6-Windows-x64.exe` (single file) or `…-Windows-x64.zip` (folder, starts faster) |
-| macOS 11+ on Apple silicon (M1–M4) | `LabPlotToolbox-0.1.6-macOS-arm64.dmg` |
-| macOS 11+ on Intel | `LabPlotToolbox-0.1.6-macOS-x86_64.dmg` |
+| Windows 10 / 11 (64-bit) | `LabPlotToolbox-0.1.7-Windows-x64.exe` (single file) or `…-Windows-x64.zip` (folder, starts faster) |
+| macOS 11+ on Apple silicon (M1–M4) | `LabPlotToolbox-0.1.7-macOS-arm64.dmg` |
+| macOS 11+ on Intel | `LabPlotToolbox-0.1.7-macOS-x86_64.dmg` |
 
 Every package was started once on its build machine and passed an automatic self-test of all four tools.
 
@@ -19,26 +19,28 @@ Every package was started once on its build machine and passed an automatic self
 
 **Windows:** SmartScreen may warn about an unknown publisher; choose **More info** → **Run anyway**.
 
-Installed 0.1.5 apps offer this version at startup (Settings → Updates).
+Installed 0.1.6 apps offer this version at startup (Settings → Updates).
 
-### NMR
+### Interface
 
-- Scan a folder of Bruker experiments; nucleus, pulse program (13C, DEPT-135, DEPT-90 …) and solvent are detected
-- Automatic referencing to the solvent signal (the acetone-d5 quintet is recognised next to other singlets); DEPT borrows the
-  referencing of the sample's 13C spectrum and inverted DEPT phases are corrected; 77Se keeps the TopSpin referencing, or click a
-  peak to set its shift
-- Stacked traces, broken axes (drag across a region to cut it out), colour windows that colour peaks only, letter labels that
-  appear only on resolved peaks
-- Drag labels and traces in the preview, Ctrl+wheel scales a trace, undo / redo; labels that touch a spectrum or each other are
-  marked
-- Automatic integration ranges with multiplicity and J, relative integrals in nuclei or mmol against an internal standard,
-  integral values and curves on the figure, CSV table for all traces; automatic peak list
-- Normalisation per segment, common to all traces, or to a reference peak; colour-blind-safe palette; settings saved as JSON
-- Structures with highlighted atoms when RDKit is installed (optional)
+- Warm neutral greys and near-black text; blue now marks only selection and focus, and the main action button is dark
+- Light sidebar; the current tool sits on a raised white pill
+- Borderless filled buttons and fields, flat cards with a hairline edge instead of a drop shadow
+- Figure previews sit on a plain sheet with a thin outline (no shadow)
+- Dark theme reworked in the same palette
+
+### Smoother
+
+- Switching tools or tabs responds immediately instead of after the highlight animation
+- No more ghost of the previous page while the new one draws
+- Tab switches are several times faster: pages stay laid out and are brought to the front instead of being rebuilt
+- Collapsing and expanding the sidebar slides instead of resizing, at a much higher frame rate
+- Resizing the window no longer redraws the figures of hidden tools; each one refits when you open it
 
 ### Also in this toolbox
 
 - XRD: stacked patterns with reference cards, multi-phase matching, Scherrer size
 - TEM: automatic scale-bar reading, inset, size distribution
 - UV-Vis: three normalization modes
+- NMR: stacked Bruker spectra with automatic referencing, integration and peak picking
 - English / Chinese interface, light / dark theme, signed automatic updates

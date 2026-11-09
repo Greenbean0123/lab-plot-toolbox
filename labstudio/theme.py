@@ -11,22 +11,26 @@ from tkinter import font as tkfont
 
 from PIL import Image, ImageDraw, ImageFilter, ImageTk
 
+# Warm neutral greys with near-black ink. Blue marks selection and focus only; the main action is an ink-coloured
+# button. Light sidebar in the same family as the window, with the active tool on a raised white pill.
 PALETTES = {
     'light': dict(
-        canvas='#f2f3f6', surface='#ffffff', subtle='#eef0f4', hover='#e7eaf0', field='#ffffff',
-        border='#e2e5eb', strong_border='#d0d5dd', text='#161b26', muted='#5f6878', faint='#9aa2b0',
-        accent='#3462e8', accent_hover='#2851cc', accent_soft='#e8eefd', accent_text='#ffffff',
-        image_bg='#1b1f27', sidebar='#11151d', sidebar_hover='#1a1f2b', sidebar_active='#232a3a',
-        sidebar_text='#9ba5b7', sidebar_title='#f5f7fb', sidebar_muted='#5c6679',
-        danger='#d1453b', success='#1d9a5b', warning='#c98a12', shadow=(16, 24, 40, 30),
+        canvas='#f5f5f3', surface='#ffffff', subtle='#f0f0ee', hover='#e9e9e6', field='#f2f2f0',
+        border='#e5e5e2', strong_border='#d4d4cf', text='#1b1b18', muted='#6c6c66', faint='#a3a39a',
+        accent='#2c73de', accent_hover='#2462c2', accent_soft='#ebf2fc', accent_text='#ffffff',
+        primary='#1b1b18', primary_hover='#3a3a36', primary_text='#ffffff',
+        image_bg='#1b1b18', sidebar='#efefed', sidebar_hover='#e6e6e3', sidebar_active='#ffffff',
+        sidebar_text='#4a4a45', sidebar_title='#1b1b18', sidebar_muted='#8c8c85',
+        danger='#c4442a', success='#2b7649', warning='#b07400', shadow=(27, 27, 24, 26),
     ),
     'dark': dict(
-        canvas='#0e1014', surface='#171a21', subtle='#1f232b', hover='#262b35', field='#1c2028',
-        border='#262b35', strong_border='#343a47', text='#e6e9ef', muted='#959dac', faint='#626a79',
-        accent='#5b7fff', accent_hover='#7894ff', accent_soft='#222b48', accent_text='#ffffff',
-        image_bg='#0a0c0f', sidebar='#090b0e', sidebar_hover='#13161d', sidebar_active='#1c2130',
-        sidebar_text='#9aa3b3', sidebar_title='#f5f7fb', sidebar_muted='#566070',
-        danger='#ef6b61', success='#3cc480', warning='#e0a53a', shadow=(0, 0, 0, 90),
+        canvas='#1b1b1a', surface='#222220', subtle='#282826', hover='#323230', field='#2c2c2a',
+        border='#2f2f2c', strong_border='#42423e', text='#ececea', muted='#9b9b94', faint='#6a6a64',
+        accent='#5a92e5', accent_hover='#78a7ec', accent_soft='#1d2a3d', accent_text='#ffffff',
+        primary='#ececea', primary_hover='#ffffff', primary_text='#1b1b18',
+        image_bg='#121211', sidebar='#161615', sidebar_hover='#222220', sidebar_active='#2c2c2a',
+        sidebar_text='#c2c2bc', sidebar_title='#ececea', sidebar_muted='#6a6a64',
+        danger='#ef6e55', success='#4fb37a', warning='#d9a23a', shadow=(0, 0, 0, 90),
     ),
 }
 for _palette in PALETTES.values():
@@ -90,8 +94,8 @@ class Theme:
         self.dpi = max(1.0, root.winfo_fpixels('1i') / 96)
         self.family = ui_family(root)
         base = 13 if sys.platform == 'darwin' else 10
-        self.base_sizes = dict(body=base, small=base - 1, bold=base, section=base + 1, h1=base + 9,
-                               h2=base + 2, brand=base + 3, nav=base + 1, mono=base, caps=base - 2)
+        self.base_sizes = dict(body=base, small=base - 1, bold=base, section=base + 1, h1=base + 6,
+                               h2=base + 2, brand=base + 2, nav=base, mono=base, caps=base - 2)
         self.fonts = {}
         for name, size in self.base_sizes.items():
             weight = 'bold' if name in ('bold', 'section', 'h1', 'h2', 'brand', 'caps') else 'normal'
@@ -150,7 +154,7 @@ class Theme:
     def _shapes(self):
         """name -> PIL image for every image element, in the current palette."""
         c, d = self.c, self.d
-        r = d(7)
+        r = d(8)
         # ttk tiles the stretchable centre of an image element. A tiny centre means thousands of alpha-blended
         # draws per card (a page took ~45 s to appear); a large centre keeps it to a handful.
         n = 2 * r + 200
@@ -159,34 +163,36 @@ class Theme:
 
         def box(fill=None, outline=None, width=1, radius=r, size=n, **kw):
             return rounded((size, size), radius, fill, outline, d(width) if outline else 1, **kw)
-        # Buttons: (normal, hover, pressed, disabled)
+        # Buttons: (normal, hover, pressed, disabled). Borderless filled shapes; only header buttons, which sit on the
+        # grey canvas, keep a hairline so they stay visible there.
+        raised = dict(shadow=(c['shadow'], 1.2, 0.5), inset=1)
         variants = {
-            'Btn': (box(c['surface'], c['strong_border']), box(c['hover'], c['strong_border']),
-                    box(c['border'], c['strong_border']), box(c['subtle'], c['border'])),
-            'Accent': (box(c['accent']), box(c['accent_hover']), box(c['accent_hover']), box(c['strong_border'])),
-            'Ghost': (box(clear), box(c['hover']), box(c['border']), box(clear)),
+            'Btn': (box(c['field']), box(c['hover']), box(c['strong_border']), box(c['subtle'])),
+            'HeadBtn': (box(c['surface'], c['border']), box(c['subtle'], c['border']), box(c['hover'], c['border']),
+                        box(c['canvas'], c['border'])),
+            'Accent': (box(c['primary']), box(c['primary_hover']), box(c['primary_hover']), box(c['strong_border'])),
+            'Ghost': (box(clear), box(c['hover']), box(c['strong_border']), box(clear)),
             'Seg': (box(clear), box(c['hover']), box(c['hover']), box(clear)),
-            'SegActive': (box(c['surface'], c['border'], shadow=(c['shadow'], 1.2, 0.5), inset=1),) * 4,
-            'Nav': (box(clear), box(c['sidebar_hover']), box(c['sidebar_active']), box(clear)),
-            'NavActive': (box(c['sidebar_active']),) * 4,
-            'SidebarBtn': (box(c['sidebar_hover']), box(c['sidebar_active']), box(c['sidebar_active']), box(c['sidebar_hover'])),
+            'SegActive': (box(c['surface'], **raised),) * 4,
+            'Nav': (box(clear), box(c['sidebar_hover']), box(c['sidebar_hover']), box(clear)),
+            'NavActive': (box(c['sidebar_active'], **raised),) * 4,
+            'SidebarBtn': (box(c['sidebar_hover']), box(c['hover']), box(c['hover']), box(c['sidebar_hover'])),
         }
         for key, images in variants.items():
             for state, im in zip(('normal', 'hover', 'pressed', 'disabled'), images):
                 shapes[f'{key}.{state}'] = im
         # Fields
-        shapes['Field.normal'] = box(c['field'], c['strong_border'])
-        shapes['Field.hover'] = box(c['field'], c['faint'])
-        shapes['Field.focus'] = box(c['field'], c['accent'], width=1.6)
-        shapes['Field.disabled'] = box(c['subtle'], c['border'])
+        shapes['Field.normal'] = box(c['field'])
+        shapes['Field.hover'] = box(c['hover'])
+        shapes['Field.focus'] = box(c['field'], c['accent'], width=1.5)
+        shapes['Field.disabled'] = box(c['subtle'])
         shapes['SideField.normal'] = box(c['sidebar_hover'])
-        shapes['SideField.hover'] = box(c['sidebar_active'])
-        # Containers
-        cr, sh = d(10), d(4)
-        shapes['Card'] = rounded((2 * (cr + sh) + 400,) * 2, cr, c['surface'], c['border'], d(1),
-                                 shadow=(c['shadow'], 2.2 * self.dpi, 1 * self.dpi), inset=sh)
-        shapes['Track'] = box(c['subtle'], radius=d(8), size=2 * d(8) + 200)
-        shapes['ListField'] = box(c['field'], c['border'])
+        shapes['SideField.hover'] = box(c['hover'])
+        # Containers: flat panels with a hairline edge, no drop shadow.
+        cr, sh = d(12), d(4)
+        shapes['Card'] = rounded((2 * (cr + sh) + 400,) * 2, cr, c['surface'], c['border'], d(1), inset=sh)
+        shapes['Track'] = box(c['field'], radius=d(9), size=2 * d(9) + 200)
+        shapes['ListField'] = box(c['surface'], c['border'])
         # Checkbox / radio indicators
         s = d(16)
         shapes['Check.off'] = rounded((s, s), d(4), c['field'], c['strong_border'], d(1.2))
@@ -210,7 +216,7 @@ class Theme:
         side.putdata([(*rgba(c['sidebar_text'])[:3], p[3]) for p in side.getdata()])
         shapes['SideChevron'] = side.resize((a, a), Image.Resampling.LANCZOS)
         # Variants that sit on a different background need their own copy (see flattening below).
-        for new, old in (('HeadBtn', 'Btn'), ('HeadAccent', 'Accent'), ('CanvasGhost', 'Ghost')):
+        for new, old in (('HeadAccent', 'Accent'), ('CanvasGhost', 'Ghost')):
             for state in ('normal', 'hover', 'pressed', 'disabled'):
                 shapes[f'{new}.{state}'] = shapes[f'{old}.{state}']
         shapes['CardTrack'] = shapes['Track']
@@ -232,8 +238,8 @@ class Theme:
 
     def _create_elements(self, img):
         s = self.style
-        r = self.d(7)
-        cr, sh = self.d(10), self.d(4)
+        r = self.d(8)
+        cr, sh = self.d(12), self.d(4)
 
         def element(name, prefix, border, sticky='nsew', states=('disabled', 'pressed', 'hover')):
             mapping = {'hover': 'active !disabled', 'pressed': 'pressed !disabled', 'disabled': 'disabled', 'focus': 'focus',
@@ -251,10 +257,10 @@ class Theme:
                          padding=self.d(2), sticky='nsew', width=2 * r + 6, height=2 * r + 6)
         s.element_create('Card.bg', 'image', img['Card'], border=cr + sh + 2, padding=sh + self.d(2), sticky='nsew',
                          width=2 * (cr + sh) + 6, height=2 * (cr + sh) + 6)
-        s.element_create('Track.bg', 'image', img['Track'], border=self.d(8) + 2, padding=self.d(1), sticky='nsew',
-                         width=2 * self.d(8) + 6, height=2 * self.d(8) + 6)
-        s.element_create('CardTrack.bg', 'image', img['CardTrack'], border=self.d(8) + 2, padding=self.d(1), sticky='nsew',
-                         width=2 * self.d(8) + 6, height=2 * self.d(8) + 6)
+        s.element_create('Track.bg', 'image', img['Track'], border=self.d(9) + 2, padding=self.d(1), sticky='nsew',
+                         width=2 * self.d(9) + 6, height=2 * self.d(9) + 6)
+        s.element_create('CardTrack.bg', 'image', img['CardTrack'], border=self.d(9) + 2, padding=self.d(1), sticky='nsew',
+                         width=2 * self.d(9) + 6, height=2 * self.d(9) + 6)
         s.element_create('ListField.bg', 'image', img['ListField'], border=r + 2, padding=self.d(3), sticky='nsew',
                          width=2 * r + 6, height=2 * r + 6)
         s.element_create('Check.indicator', 'image', img['Check.off'], ('disabled', img['Check.disabled']),
@@ -349,8 +355,8 @@ class Theme:
             s.configure(f'Status{kind.title()}.TLabel', background=c['canvas'], foreground=c['text'], font=f['small'], padding=(px(6), px(6)))
         # Buttons: the image is the body; 'background' is the colour around its rounded corners.
         base = dict(relief='flat', focusthickness=0, anchor='center', padding=(px(14), px(6)))
-        for style, bg, fg in (('TButton', 'surface', 'text'), ('Head.TButton', 'canvas', 'text'), ('Accent.TButton', 'surface', 'accent_text'),
-                              ('HeadAccent.TButton', 'canvas', 'accent_text'), ('Ghost.TButton', 'surface', 'muted'),
+        for style, bg, fg in (('TButton', 'surface', 'text'), ('Head.TButton', 'canvas', 'text'), ('Accent.TButton', 'surface', 'primary_text'),
+                              ('HeadAccent.TButton', 'canvas', 'primary_text'), ('Ghost.TButton', 'surface', 'muted'),
                               ('PreviewTool.TButton', 'canvas', 'muted'), ('Seg.TButton', 'subtle', 'muted'),
                               ('SegActive.TButton', 'subtle', 'text'), ('PreviewSeg.TButton', 'subtle', 'muted'),
                               ('PreviewSegActive.TButton', 'subtle', 'text')):
@@ -400,11 +406,11 @@ class Theme:
             s.configure(name, background=c['surface'], foreground=c['text'], padding=(0, px(4)), indicatormargin=0)
             s.map(name, background=[('active', c['surface'])])
         # Lists
-        s.configure('Treeview', background=c['field'], fieldbackground=c['field'], foreground=c['text'],
+        s.configure('Treeview', background=c['surface'], fieldbackground=c['surface'], foreground=c['text'],
                     rowheight=px(30), borderwidth=0, relief='flat', font=f['body'], padding=d(2))
         s.map('Treeview', background=[('selected', c['accent_soft'])], foreground=[('selected', c['text'])])
-        s.configure('Treeview.Heading', background=c['field'], foreground=c['faint'], relief='flat', font=f['caps'],
-                    padding=(px(8), px(7)), bordercolor=c['field'], lightcolor=c['field'], darkcolor=c['field'])
+        s.configure('Treeview.Heading', background=c['surface'], foreground=c['faint'], relief='flat', font=f['caps'],
+                    padding=(px(8), px(7)), bordercolor=c['surface'], lightcolor=c['surface'], darkcolor=c['surface'])
         s.map('Treeview.Heading', background=[('active', c['subtle'])])
         # Scrollbars, separators, progress
         for prefix, trough in (('', 'surface'), ('Page.', 'canvas')):
@@ -479,15 +485,13 @@ class Theme:
         return im.resize((size, size), Image.Resampling.LANCZOS)
 
     def paper_shadow(self, w, h):
-        """Soft drop shadow image for a figure of w×h pixels (returned image is larger by 2*margin)."""
-        m = self.d(14)
-        scale = 4  # draw small and upscale: blur is smooth anyway
-        small = Image.new('RGBA', ((w + 2 * m) // scale + 1, (h + 2 * m) // scale + 1), rgba(self.c['canvas']))
-        layer = Image.new('RGBA', small.size, (0, 0, 0, 0))
-        ImageDraw.Draw(layer).rectangle((m / scale, (m + self.d(3)) / scale, (m + w) / scale, (m + h + self.d(3)) / scale),
-                                        fill=rgba(self.c['shadow'][:3], min(255, round(self.c['shadow'][3] * 1.3))))
-        small = Image.alpha_composite(small, layer.filter(ImageFilter.GaussianBlur(self.d(9) / scale)))
-        return small.resize((w + 2 * m, h + 2 * m), Image.Resampling.BILINEAR), m
+        """Paper edge for a figure of w×h pixels: a 1 px hairline just outside it, no drop shadow.
+
+        The returned image is larger by 2*margin and is placed behind the figure.
+        """
+        m = 1
+        image = Image.new('RGB', (w + 2 * m, h + 2 * m), rgba(self.c['strong_border' if self.mode == 'light' else 'border'])[:3])
+        return image, m
 
     def contrast(self, color, background='#ffffff'):
         """WCAG contrast ratio between two colors (1 = identical, 21 = black on white)."""
@@ -523,7 +527,7 @@ class Theme:
     # ---------- plain tk widgets ----------
     def paint_listbox(self, widget):
         c = self.c
-        widget.configure(background=c['field'], foreground=c['text'], selectbackground=c['accent_soft'],
+        widget.configure(background=c['surface'], foreground=c['text'], selectbackground=c['accent_soft'],
                          selectforeground=c['text'], highlightthickness=0, borderwidth=0,
                          activestyle='none', font=self.fonts['body'])
 
@@ -531,7 +535,7 @@ class Theme:
         """Display version of a data color with enough contrast on the list background (data is unchanged)."""
         try:
             r, g, b = (v / 65535 for v in self.root.winfo_rgb(color))
-            br, bg, bb = (v / 65535 for v in self.root.winfo_rgb(self.c['field']))
+            br, bg, bb = (v / 65535 for v in self.root.winfo_rgb(self.c['surface']))
         except tk.TclError:
             return self.c['text']
 

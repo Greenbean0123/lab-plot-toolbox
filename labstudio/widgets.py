@@ -144,12 +144,12 @@ class Segmented(ttk.Frame):
         if width < 10 or not self.titles:
             return
         inset = d(4)
-        self._images['track'] = ImageTk.PhotoImage(self.theme.flat(rounded((width, height), d(8), c['subtle']), 'canvas'),
+        self._images['track'] = ImageTk.PhotoImage(self.theme.flat(rounded((width, height), d(9), c['field']), 'canvas'),
                                                    master=self.bar)
         seg = self._segment()
-        pill = rounded((max(4, round(seg - 2 * inset)) + 2, height - 2 * inset + 2), d(7), c['surface'], c['border'],
+        pill = rounded((max(4, round(seg - 2 * inset)) + 2, height - 2 * inset + 2), d(7), c['surface'],
                        shadow=(c['shadow'], 1.2, 0.5), inset=1)
-        self._images['pill'] = ImageTk.PhotoImage(self.theme.flat(pill, 'subtle'), master=self.bar)
+        self._images['pill'] = ImageTk.PhotoImage(self.theme.flat(pill, 'field'), master=self.bar)
         self.bar.create_image(0, 0, anchor='nw', image=self._images['track'])
         if self._anim is None and self.current is not None:
             self.pill_x = self._target(self.current)
@@ -174,8 +174,7 @@ class Segmented(ttk.Frame):
     def add(self, title):
         index = len(self.pages)
         page = ScrollPanel(self.holder, self.theme)
-        page.grid(row=0, column=0, sticky='nsew')  # laid out once while hidden behind the current page...
-        self.after_idle(self._park)  # ...then unmapped, so hidden pages take no part in layout or painting
+        page.grid(row=0, column=0, sticky='nsew')  # all pages share one cell; the current one is raised
         self.pages.append(page)
         self.titles.append(title)
         if self.current is None:
@@ -185,58 +184,34 @@ class Segmented(ttk.Frame):
         self.redraw()
         return page.body
 
-    def _park(self):
-        for i, page in enumerate(self.pages):
-            if i != self.current and page.winfo_manager():
-                page.grid_remove()
-
     def click(self, event):
         index = self.index_at(event.x)
         if index is not None:
             self.select(index)
 
     def select(self, index, animate=True):
+        """Switch at once. The pill jumps rather than slides: showing a page blocks while it paints, so a slide
+        either stalls half-way or delays the page; an immediate response feels smoother than either."""
         if self.current == index:
             return
         self.current = index
         self.restyle()
-        if not self.items or not animate:
-            self.show_page(index)
-            if self.items:
-                self.pill_x = self._target(index)
-                self.bar.coords(self.pill, self.pill_x - 1, self.theme.d(4) - 1)
-            return
         if self._anim is not None:
             self.bar.after_cancel(self._anim)
             self._anim = None
-        import time
-        start, target, began = self.pill_x, self._target(index), time.perf_counter()
-
-        def step():
-            t = min(1.0, (time.perf_counter() - began) * 1000 / self.DURATION)
-            eased = 1 - (1 - t) ** 3  # ease-out cubic
-            self.pill_x = start + (target - start) * eased
-            if self.bar.winfo_exists():
-                self.bar.coords(self.pill, self.pill_x - 1, self.theme.d(4) - 1)
-            if t < 1:
-                self._anim = self.bar.after(10, step)
-            else:
-                self._anim = None
-                self.show_page(self.current)  # after the slide, so the paint cannot interrupt it
-        step()
+        if self.items:
+            self.pill_x = self._target(index)
+            self.bar.coords(self.pill, self.pill_x - 1, self.theme.d(4) - 1)
+            self.bar.update_idletasks()  # the tab bar answers the click before the page swap
+        self.show_page(index)
 
     def show_page(self, index):
         from .app import LabStudio
-        LabStudio.freeze(self.holder, True)  # the new page appears in one paint
-        try:
-            for i, page in enumerate(self.pages):
-                if i != index and page.winfo_manager():
-                    page.grid_remove()
-            self.pages[index].grid()  # grid remembers its place: no re-layout
-            self.pages[index].tkraise()
-            self.update_idletasks()
-        finally:
-            LabStudio.freeze(self.holder, False)
+        page = self.pages[index]
+        if not page.winfo_manager():
+            page.grid()
+        page.tkraise()  # raising only repaints; re-mapping a page also re-creates its windows (about 2x slower)
+        LabStudio.flush_paint(self.holder)
         if self.on_change:
             self.on_change(index)
 

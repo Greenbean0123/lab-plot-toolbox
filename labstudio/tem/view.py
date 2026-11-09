@@ -595,6 +595,8 @@ class TEMView(ttk.Frame):
         self.canvas.create_rectangle(x - s, y - s, x, y, fill=color, outline='#202833', tags='inset_handle')
 
     def schedule_preview(self, _=None):
+        if self.app.defer_if_hidden(self, self.schedule_preview):
+            return
         if self.render_pending is not None:
             self.after_cancel(self.render_pending)
         self.draw_preview(quick=True)

@@ -13,7 +13,8 @@ from .theme import Theme
 from .widgets import install_wheel_router, Tooltip
 from .i18n import T, LANGUAGES, app_name, get_language, set_language
 
-NAV_GLIDE_MS = 180  # accent bar animation; the page swap follows it
+NAV_GLIDE_MS = 180  # accent bar glide (tool switches move it at once, before the page swap)
+SIDEBAR_SLIDE_MS = 240  # sidebar collapse / expand
 
 TOOLS = [
     # key, nav label, nav caption, module, class
@@ -79,6 +80,7 @@ class LabStudio(tk.Tk):
         self.sidebar = ttk.Frame(self, style='Sidebar.TFrame')
         self.sidebar_inner, self._sidebar_width, self._sidebar_job = None, 0, None
         self._swap_job = None
+        self._deferred = {}  # hidden tool -> figure refit to run when it is shown again
         self.build_sidebar()
         self.theme.subscribe(lambda: self.move_indicator(animate=False))
         # Main area
@@ -111,8 +113,10 @@ class LabStudio(tk.Tk):
     def build_sidebar(self, animate=False):
         """Expanded: icon, name and caption. Collapsed: icons only, names shown as tooltips."""
         pad, expanded = self.theme.pad, self.sidebar_expanded
-        old = self.sidebar_inner
-        inner = ttk.Frame(self.sidebar, style='Sidebar.TFrame')
+        # Each layout gets its own overlay window, so the old and new sidebars can slide over one another.
+        old_overlay = self.sidebar if self.sidebar_inner is not None else None
+        overlay = ttk.Frame(self, style='Sidebar.TFrame') if old_overlay is not None else self.sidebar
+        inner = ttk.Frame(overlay, style='Sidebar.TFrame')
         self.nav_buttons = {}
         self._indicator_y, self._indicator_job = None, None
         top = ttk.Frame(inner, style='Sidebar.TFrame', padding=pad(20, 22, 12, 22) if expanded else pad(12, 18, 12, 18))
@@ -156,13 +160,15 @@ class LabStudio(tk.Tk):
         self.update_idletasks()
         width = inner.winfo_reqwidth()
         start = self._sidebar_width or width
+        inner.place(x=0, y=0, relheight=1, width=width)
 
         def settle():
-            if old is not None and old.winfo_exists():
-                self.cancel_timers_of([old])
-                old.destroy()
-            inner.place(x=0, y=0, relheight=1, width=width)
-            self.sidebar.place(x=0, y=0, relheight=1, width=width)
+            if old_overlay is not None and old_overlay.winfo_exists():
+                self.cancel_timers_of([old_overlay])
+                old_overlay.destroy()
+            self.sidebar = overlay
+            overlay.place(x=0, y=0, relheight=1, width=width)
+            overlay.lift()
             # The one re-layout of the main area: done with painting suspended, then shown in a single pass.
             main = getattr(self, 'main', None)  # absent while the window is first built
             if main is None:
@@ -176,36 +182,42 @@ class LabStudio(tk.Tk):
                     self.freeze(main, False)
             self._sidebar_width, self._sidebar_job = width, None
             self.after_idle(lambda: self.move_indicator(animate=False))
-        if not animate or old is None or start == width:
+        if not animate or old_overlay is None or start == width:
             settle()
             return
-        if width > start:  # expanding: show the new content now and reveal it
-            inner.place(x=0, y=0, relheight=1, width=width)
-            self.cancel_timers_of([old])
-            old.destroy()
-            old = None
-        # collapsing: keep the old content until the overlay has shrunk
+        # Slide, never resize: moving a window is a cheap blit (~3 ms a frame), while resizing it re-renders all of
+        # its contents (~50 ms a frame). Expanding slides the wide panel in over the icon rail; collapsing slides it
+        # out and uncovers the rail, which is already in place underneath.
+        expanding = width > start
+        mover, span = (overlay, width) if expanding else (old_overlay, start)
+        if expanding:
+            overlay.place(x=-span, y=0, relheight=1, width=span)
+            overlay.lift()
+        else:
+            overlay.place(x=0, y=0, relheight=1, width=width)
+            overlay.lift()
+            old_overlay.lift()
         import time
         began = time.perf_counter()
 
         def step():
-            t = min(1.0, (time.perf_counter() - began) * 1000 / 220)
-            eased = 4 * t ** 3 if t < .5 else 1 - (-2 * t + 2) ** 3 / 2  # ease-in-out cubic
-            self._sidebar_width = round(start + (width - start) * eased)
-            self.sidebar.place(x=0, y=0, relheight=1, width=self._sidebar_width)
+            t = min(1.0, (time.perf_counter() - began) * 1000 / SIDEBAR_SLIDE_MS)
+            eased = 1 - (1 - t) ** 3  # ease-out cubic
+            x = -span * (1 - eased) if expanding else -span * eased
+            mover.place(x=round(x), y=0, relheight=1, width=span)
             if t < 1:
-                self._sidebar_job = self.after(10, step)
+                self._sidebar_job = self.after(8, step)
             else:
                 settle()
         step()
 
-    def highlight_nav(self):
+    def highlight_nav(self, animate=True):
         expanded = self.sidebar_expanded
         for key, button in self.nav_buttons.items():
             active = key == self.current
             button.configure(style=('NavActive.TButton' if active else 'Nav.TButton') if expanded else
                              ('NavIconActive.TButton' if active else 'NavIcon.TButton'))
-        self.move_indicator()
+        self.move_indicator(animate=animate)
 
     def move_indicator(self, animate=True):
         indicator = getattr(self, 'nav_indicator', None)
@@ -258,14 +270,12 @@ class LabStudio(tk.Tk):
             traceback.print_exc()
             return
         self.views[key] = view
-        # Lay it out once behind the current view, then unmap it: the first real switch only has to map it.
+        # Lay it out behind the current view and leave it there: switching to it only raises it.
         current = self.views.get(self.current)
         view.grid(row=0, column=0, sticky='nsew')
         if current is not None:
             view.lower(current)
         self.update_idletasks()
-        if self.views.get(self.current) is not view:
-            view.grid_remove()
         if len(missing) > 1:
             self._preload_job = self.after(400, self.preload_next)
 
@@ -302,8 +312,13 @@ class LabStudio(tk.Tk):
         if key == self.current:
             return
         first_time = key not in self.views
+        # A switch between shown tools paints at once. The very first page (and a tool built on demand) paints
+        # lazily instead: painting the whole new window synchronously would hold up its start-up work for seconds.
+        switching = not first_time and self.views.get(self.current) is not None
         self.current = key
-        self.highlight_nav()  # starts the accent bar gliding
+        self.highlight_nav(animate=False)
+        if switching:
+            self.flush_paint(self.sidebar)  # the highlight moves before the (slower) page swap
         self.prefs.set('tool', key)
         if key not in self.views:
             spec = next(t for t in TOOLS if t[0] == key)
@@ -330,26 +345,53 @@ class LabStudio(tk.Tk):
             self._swap_job = None
 
         def swap():
+            # Every tool stays mapped in the same grid cell and is brought to the front. Raising only repaints;
+            # unmapping and re-mapping also re-creates and lays out every child window, about twice as slow.
             self._swap_job = None
-            # Paint the new page in one pass with painting suspended, so it appears at once, not piece by piece.
-            self.freeze(self.stage, True)
-            try:
-                for other in self.views.values():
-                    if other is not view and other.winfo_manager():
-                        other.grid_remove()  # unmapped: takes no part in layout or painting while hidden
+            if not view.winfo_manager():
                 view.grid(row=0, column=0, sticky='nsew')
-                self.update_idletasks()
-            finally:
-                self.freeze(self.stage, False)
+            view.tkraise()
+            if switching:
+                self.flush_paint(self.stage)
+            refit = self._deferred.pop(view, None)
+            if refit is not None:
+                refit()  # the window was resized while this tool was hidden
             if hasattr(view, 'on_show'):
                 view.on_show()
-        if first_time or not any(v.winfo_manager() for v in self.views.values()):
-            swap()
+        swap()  # at once: the highlight has already moved, and waiting only made the click feel slow
+        if first_time:
             self.schedule_preload()
-        else:
-            # Let the accent bar finish gliding first: the page swap blocks while it paints, and would otherwise
-            # freeze the animation half-way. Nothing moves during the swap, so it does not read as a stutter.
-            self._swap_job = self.after(NAV_GLIDE_MS + 15, swap)
+
+    @staticmethod
+    def flush_paint(widget):
+        """Paint pending changes now instead of when Windows gets round to it.
+
+        Windows posts WM_PAINT at the lowest priority, so a newly shown page could stay blank for a few hundred
+        ms. RDW_UPDATENOW delivers it at once; Tk turns it into Expose events, and the idle pass draws them.
+        """
+        import _tkinter
+        widget.update_idletasks()  # geometry first, so the paint covers the final layout
+        if sys.platform == 'win32':
+            try:
+                import ctypes
+                # RDW_UPDATENOW | RDW_ALLCHILDREN
+                ctypes.windll.user32.RedrawWindow(int(widget.winfo_id()), None, None, 0x0100 | 0x0080)
+            except Exception:
+                pass
+        while widget.tk.dooneevent(_tkinter.WINDOW_EVENTS | _tkinter.DONT_WAIT):
+            pass
+        widget.update_idletasks()
+
+    def defer_if_hidden(self, view, callback):
+        """Tools behind the current one still get resize events. Their figure refit waits until they are shown.
+
+        Returns True when the call was deferred (the caller should return).
+        """
+        current = self.views.get(self.current)
+        if current is None or current is view:
+            return False
+        self._deferred[view] = callback
+        return True
 
     @staticmethod
     def freeze(widget, frozen):

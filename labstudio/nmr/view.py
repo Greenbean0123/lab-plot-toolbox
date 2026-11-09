@@ -1072,6 +1072,8 @@ class NMRView(ttk.Frame):
         self.canvas.draw_idle()
 
     def schedule_fit(self, event=None):
+        if self.app.defer_if_hidden(self, self.schedule_fit):
+            return
         if self._fit_job is not None:
             self.after_cancel(self._fit_job)
         self._fit_job = self.after(150, self.refit)

@@ -5,7 +5,7 @@ import sys
 from pathlib import Path
 
 APP_NAME = '科研绘图工具箱'
-APP_VERSION = '0.1.6'
+APP_VERSION = '0.1.7'
 PROJECT_DIR = Path(__file__).resolve().parent.parent
 ASSETS = Path(__file__).resolve().parent / 'assets'
 DEMO_DATA = PROJECT_DIR / 'demo-data'
