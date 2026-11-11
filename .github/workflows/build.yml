@@ -20,8 +20,9 @@ jobs:
         include:
           - name: Windows x64
             os: windows-latest
+          # GitHub's hosted arm64 Macs had no capacity for days, so this job runs on our own Mac.
           - name: macOS Apple silicon
-            os: macos-26
+            os: [self-hosted, macOS, ARM64]
             arch: arm64
           - name: macOS Intel
             os: macos-15-intel
@@ -40,8 +41,24 @@ jobs:
         with:
           python-version: '3.13'
 
+      # On our own Mac: no sudo installs, and a throwaway HOME so tests never touch real app data.
+      - name: Use preinstalled Python on a self-hosted Mac
+        if: runner.os == 'macOS' && runner.environment == 'self-hosted'
+        shell: bash
+        run: |
+          set -euo pipefail
+          fw=/Library/Frameworks/Python.framework/Versions/3.13/bin
+          if [ ! -x "$fw/python3" ]; then
+            echo "::error::Install Python 3.13 from python.org (macOS 64-bit universal2 installer) on this Mac first."
+            exit 1
+          fi
+          "$fw/python3" -c "import sys, tkinter; print(sys.version); assert sys.version_info[:2] == (3, 13)"
+          echo "$fw" >> "$GITHUB_PATH"
+          rm -rf "$RUNNER_TEMP/home" && mkdir -p "$RUNNER_TEMP/home"
+          echo "HOME=$RUNNER_TEMP/home" >> "$GITHUB_ENV"
+
       - name: Install official macOS Python with Tk
-        if: runner.os == 'macOS'
+        if: runner.os == 'macOS' && runner.environment != 'self-hosted'
         shell: bash
         run: |
           set -euo pipefail
